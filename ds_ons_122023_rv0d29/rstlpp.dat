@@ -1,0 +1,777 @@
+&LPPs PARA OPERACAO EM N-2
+& ==========================================================================================================================
+& Fluxo Norte Sudeste (FNS) Nº 1 
+& Em função do somatorio FXGTR e FXGET, F. IMPERATRIZ - P.DUTRA E GER. SERRA DA MESA
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FNS        1 9007 DREF   9042 FNS Em função do somatorio FXGTR e FXGET
+ADICRS FNS        1 9007 DREF   9036 GER. SERRA DA MESA
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM    1 CARGA   SIN
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM    1  1         0   
+VPARM    1  2     72000    
+VPARM    1  3     98000    
+&
+&mnem   num p i coefangula coeflin    2 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP    1 1 1      0.000       5200      0.000                                 
+RESLPP    1 1 2      0.000       5300     -0.339                                 
+RESLPP    1 1 3     -0.387       6543      0.000                                 
+RESLPP    1 1 4     -0.387       6643     -0.339                                 
+&
+RESLPP    1 2 1      0.000       5400      0.000                                 
+RESLPP    1 2 2      0.000       5500     -0.339                                 
+RESLPP    1 2 3     -0.387       6743      0.000                                 
+RESLPP    1 2 4     -0.387       6843     -0.339                                 
+&
+RESLPP    1 3 1      0.000       5400      0.000                                 
+RESLPP    1 3 2      0.000       5500     -0.339                                 
+RESLPP    1 3 3     -0.368       6818      0.000                                 
+RESLPP    1 3 4     -0.368       6918     -0.339                                 
+&
+& ==========================================================================================================================
+& Limite Importacao SE/CO (IMP_SECO) Nº 2
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG IMPSECO    2 9057 CARGA    SE Limite Importacao SE/CO 
+ADICRS IMPSECO    219057 RELE    860 UFV + MMGD do SE
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM    2 CARGA  SIN
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM    2  1         0   
+VPARM    2  2     72000  
+&
+&mnem   num p i coefangula coeflin    2 contro    
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx   
+RESLPP    2 1 1       0.65          0      -0.65                                 
+&
+RESLPP    2 2 1       0.60          0      -0.60                                 
+&
+& ==========================================================================================================================
+&& Fluxo Norte Sudeste (FNS) Nº 3 
+&& Em função do somatorio FXGTR e FXGET, F. IMPERATRIZ - P.DUTRA E GER. SERRA DA MESA
+&& Para UHE Serra da Mesa operando com apenas 2 UGs
+&&
+&&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+&RSTSEG FNS        3 9007 DREF   9042 FNS Em função do somatorio FXGTR e FXGET
+&ADICRS FNS        3 9007 DREF   9036 GER. SERRA DA MESA
+&&&&&&&
+&&XXXX XXXX XXXXX XXXXX
+&PARAM    3 CARGA   SIN
+&&&&&&&
+&&XXXX XXXX XX XXXXXXXXX   
+&VPARM    3  1         0   
+&VPARM    3  2     72000    
+&VPARM    3  3     98000    
+&&
+&&mnem   num p i coefangula coeflin    2 contro  
+&&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+&RESLPP    3 1 1      0.000       5200      0.000                                 
+&RESLPP    3 1 2      0.000       5300     -0.339                                 
+&RESLPP    3 1 3     -0.387       6343      0.000                                 
+&RESLPP    3 1 4     -0.387       6443     -0.339                                 
+&&
+&RESLPP    3 2 1      0.000       5400      0.000                                 
+&RESLPP    3 2 2      0.000       5500     -0.339                                 
+&RESLPP    3 2 3     -0.387       6543      0.000                                 
+&RESLPP    3 2 4     -0.387       6643     -0.339                                 
+&&
+&RESLPP    3 3 1      0.000       5400      0.000                                 
+&RESLPP    3 3 2      0.000       5500     -0.339                                 
+&RESLPP    3 3 3     -0.368       6618      0.000                                 
+&RESLPP    3 3 4     -0.368       6718     -0.339                                 
+&&
+& ==========================================================================================================================
+& Limite Fluxo Estreito - Xingu + TerminalRio - Xingu (FETXG + FTRXG) Nº 4
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FETTRXG    4 9060 CARGA   SIN Fluxo Estreito-Xingu + TerminalRio-Xingu
+&&&&&&
+&mnem   num p i coefangula coeflin     
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx   
+RESLPP    4 1 1        0.0       4200                                            
+&
+& ==========================================================================================================================
+& Limite Fluxo FAmazonas x Ger. UTE Maua 3 Nº 5
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FETTRXG    5 9027 DREF   9037 FAmazonas x Ger. UTE Maua 3
+&&&&&&
+&mnem   num p i coefangula coeflin     
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx   
+RESLPP    5 1 1        0.0        500                                            
+RESLPP    5 1 2      0.834        208                                            
+&
+& ==========================================================================================================================
+& Recebimento Sudeste (RSE) Nº 6
+& Em função da soma de bipolos
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG RSE        6 9011 DREF   9012 RSE em função de FBIPS
+ADICRS RSE        6 9011 DREF   9094 GTER
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM    6 CARGA   SIN
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM    6  1         0    
+VPARM    6  2     72000   
+VPARM    6  3     82000 
+&&&&&&
+&mnem   num p i coefangula coeflin    2 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP    6 1 1      0.000      12000      0.000                                 
+RESLPP    6 1 2      0.000      10400      0.500                                 
+RESLPP    6 1 3     -0.239      14299      0.000                                 
+RESLPP    6 1 4     -0.239      12699      0.500                                 
+&                               
+RESLPP    6 2 1      0.000      11500      0.000                                 
+RESLPP    6 2 2      0.000       9900      0.500                                 
+RESLPP    6 2 3     -0.287      14127      0.000                                 
+RESLPP    6 2 4     -0.287      12527      0.500                                 
+&                               
+RESLPP    6 3 1      0.000      11500      0.000                                 
+RESLPP    6 3 2      0.000       9900      0.500                                 
+RESLPP    6 3 3     -0.383      14782      0.000                                 
+RESLPP    6 3 4     -0.383      13182      0.500                                 
+&
+& ==========================================================================================================================
+& Fluxo Jurupari - Oriximiná (FJPOR) Nº 7
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FJPOR      7 9024 DREF   9025  FJPOR em função Carga (AM + PA) sMMGD
+&&&&&&
+&mnem   num p i coefangula coeflin    
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx 
+RESLPP    7 1 1     0.4500                                                       
+&
+& ==========================================================================================================================
+& Fluxo Xingu - Jurupari (FXGJP) Nº 8
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FXGJP      8 9019 DREF   9026 FXGJP - Carga (AP + AM + PA) sMMGD
+&mnem   num p i coefangula coeflin    
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx 
+RESLPP    8 1 1     0.4500                                                       
+&
+& ========================================================================================================================== 
+& Fluxo Macapá (FMACAPA) Nº 9
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FMACAPA    9 9029 DREF   9033 FMACAPA - Ger Sist Macapa
+&&&&&&
+&mnem   num p i coefangula coeflin    
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx 
+&Flexibilizado para convergencia
+RESLPP    9 1 1      0.500         40                                            
+&
+& ==========================================================================================================================
+& Fluxo FNS + FNESE Nº 10  
+& Em função do FNXG e UHEs Tucurui, Serra da Mesa, Belo Monte e Estreito
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FNSNESE   10 9081 DREF   9090 FNXG
+ADICRS FNSNESE   10 9081 DREF   9031 UHE Tucurui
+ADICRS FNSNESE   10 9081 DREF   9036 UHE S. MESA   
+ADICRS FNSNESE   10 9081 DREF   9038 UHE B. MONTE   
+ADICRS FNSNESE   10 9081 DREF   9032 UHE ESTREITO   
+&&&&&&
+&mnem   num p i coefangula coeflin    2 contro   3 contro   4 contro   5 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP   10 1 1      0.000      12100      0.000      0.000      0.000      0.000
+RESLPP   10 1 2      0.000      12236      0.000     -0.530      0.000      0.000
+RESLPP   10 1 3      0.000      11649      0.291      0.000      0.000      0.000
+RESLPP   10 1 4      0.000      11785      0.291     -0.530      0.000      0.000
+RESLPP   10 1 5     -1.063      15074      0.000      0.000      0.000      0.000
+RESLPP   10 1 6     -1.063      15210      0.000     -0.530      0.000      0.000
+RESLPP   10 1 7     -1.063      14623      0.291      0.000      0.000      0.000
+RESLPP   10 1 8     -1.063      14442      0.130      0.000      0.160      0.180
+RESLPP   10 1 9     -1.063      14127      0.421     -0.530      0.160      0.180
+RESLPP   10 110     -2.744      23262      0.000      0.000      0.000      0.000
+RESLPP   10 111     -2.744      23398      0.000     -0.530      0.000      0.000
+RESLPP   10 112     -2.744      22811      0.291      0.000      0.000      0.000
+RESLPP   10 113     -2.744      23304      0.160      0.000      0.190      0.210
+RESLPP   10 114     -2.744      22989      0.451     -0.530      0.190      0.210
+&
+& ==========================================================================================================================
+& Fluxo Nordeste Sudeste (FNESE) Nº 12
+& Em função do FXGET + FXGTR
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FNESE     12 9082 DREF   9042 FXGET + FXGTR
+ADICRS FNESE     12 9082 DREF   9038 GER BELO MONTE
+ADICRS FNESE     12 9082 DREF   9031 GER TUCURUI
+ADICRS FNESE     12 9082 DREF   9032 GER ESTREITO
+&&&&&&
+&mnem   num p i coefangula coeflin    2 contro   3 contro   4 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP   12 1 1        0.0       7200      0.000      0.000      0.000           
+RESLPP   12 1 2        0.0       7124     -0.033     -0.028     -0.037           
+RESLPP   12 1 3     -0.085       7493      0.000      0.000      0.000           
+RESLPP   12 1 4     -0.085       7417     -0.033     -0.028     -0.037           
+&
+& ==========================================================================================================================
+& Fluxo Norte Sudeste + Fluxo Norte Sudeste (FNS + FNESE) Nº 13
+& Em função do FXGET + FXGTR e a UHE S. MESA
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FNSNESE   13 9081 DREF   9042 FXGET + FXGTR
+ADICRS FNSNESE   13 9081 DREF   9036 UHE S. MESA
+ADICRS FNSNESE   13 9081 DREF   9097 FATOR NORTE
+ADICRS FNSNESE   13 9081 DREF   9089 FATOR NORTE 2
+ADICRS FNSNESE   13 9081 DREF   9005 EXP NORTE
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM   13 CARGA   SIN
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM   13  1         0       
+VPARM   13  2     72000    
+VPARM   13  3     98000
+&&&&&&
+&mnem   num p i coefangula coeflin    2 contro   3 contro   4 contro   5 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP   13 1 1      0.000      12100      0.000      0.000      0.000      0.000
+RESLPP   13 1 2      0.000      12236     -0.530      0.000      0.000      0.000
+RESLPP   13 1 3      0.000      16877      0.000      1.000      0.000      0.360
+RESLPP   13 1 4      0.000      59491      0.000      0.000      1.000      1.000
+RESLPP   13 1 5      0.000       9123      0.000      1.000      0.000      0.000
+RESLPP   13 1 6      0.000      17013     -0.530      1.000      0.000      0.360
+RESLPP   13 1 7      0.000      59627     -0.530      0.000      1.000      1.000
+RESLPP   13 1 8      0.000       9259     -0.530      1.000      0.000      0.000
+RESLPP   13 1 9     -0.833      14817      0.000      0.000      0.000      0.000
+RESLPP   13 110     -0.833      14953     -0.530      0.000      0.000      0.000
+RESLPP   13 111     -0.833      19594      0.000      1.000      0.000      0.360
+RESLPP   13 112     -0.833      62208      0.000      0.000      1.000      1.000
+RESLPP   13 113     -0.833      11840      0.000      1.000      0.000      0.000
+RESLPP   13 114     -0.833      19730     -0.530      1.000      0.000      0.360
+RESLPP   13 115     -0.833      62344     -0.530      0.000      1.000      1.000
+RESLPP   13 116     -0.833      11976     -0.530      1.000      0.000      0.000
+&
+RESLPP   13 2 1      0.000      12100      0.000      0.000      0.000      0.000
+RESLPP   13 2 2      0.000      12236     -0.530      0.000      0.000      0.000
+RESLPP   13 2 3      0.000      16877      0.000      1.000      0.000      0.360
+RESLPP   13 2 4      0.000      59491      0.000      0.000      1.000      1.000
+RESLPP   13 2 5      0.000       9123      0.000      1.000      0.000      0.000
+RESLPP   13 2 6      0.000      17013     -0.530      1.000      0.000      0.360
+RESLPP   13 2 7      0.000      59627     -0.530      0.000      1.000      1.000
+RESLPP   13 2 8      0.000       9259     -0.530      1.000      0.000      0.000
+RESLPP   13 2 9     -0.622      14065      0.000      0.000      0.000      0.000
+RESLPP   13 210     -0.622      14201     -0.530      0.000      0.000      0.000
+RESLPP   13 211     -0.622      18842      0.000      1.000      0.000      0.360
+RESLPP   13 212     -0.622      61456      0.000      0.000      1.000      1.000
+RESLPP   13 213     -0.622      11088      0.000      1.000      0.000      0.000
+RESLPP   13 214     -0.622      18978     -0.530      1.000      0.000      0.360
+RESLPP   13 215     -0.622      61592     -0.530      0.000      1.000      1.000
+RESLPP   13 216     -0.622      11224     -0.530      1.000      0.000      0.000
+&
+RESLPP   13 3 1      0.000      12100      0.000      0.000      0.000      0.000
+RESLPP   13 3 2      0.000      12236     -0.530      0.000      0.000      0.000
+RESLPP   13 3 3      0.000      16877      0.000      1.000      0.000      0.360
+RESLPP   13 3 4      0.000      59491      0.000      0.000      1.000      1.000
+RESLPP   13 3 5      0.000       9123      0.000      1.000      0.000      0.000
+RESLPP   13 3 6      0.000      17013     -0.530      1.000      0.000      0.360
+RESLPP   13 3 7      0.000      59627     -0.530      0.000      1.000      1.000
+RESLPP   13 3 8      0.000       9259     -0.530      1.000      0.000      0.000
+RESLPP   13 3 9     -0.540      14023      0.000      0.000      0.000      0.000
+RESLPP   13 310     -0.540      14159     -0.530      0.000      0.000      0.000
+RESLPP   13 311     -0.540      18800      0.000      1.000      0.000      0.360
+RESLPP   13 312     -0.540      61414      0.000      0.000      1.000      1.000
+RESLPP   13 313     -0.540      11046      0.000      1.000      0.000      0.000
+RESLPP   13 314     -0.540      18936     -0.530      1.000      0.000      0.360
+RESLPP   13 315     -0.540      61550     -0.530      0.000      1.000      1.000
+RESLPP   13 316     -0.540      11182     -0.530      1.000      0.000      0.000
+&
+& ==========================================================================================================================
+& Fluxo Recebimento Sul (RSUL) Nº 14
+& Em funcao das GPC
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG RSUL      14 9059 DREF   9094 GTER
+&&&&&&
+&mnem   num p i coefangula coeflin
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx 
+&Ajuste conforme SGIs 57.588-23 e 66.352-23
+RESLPP   14 1 1      0.000      11700                                            
+RESLPP   14 1 2      1.000       8500                                            
+&
+&& ==========================================================================================================================
+&& Fluxo Norte Sudeste + Fluxo Norte Sudeste (FNS + FNESE) Nº 16
+&& Em função do FXGET + FXGTR e a UHE S. MESA
+&& Para UHE Serra da Mesa operando com 2UGs
+&&
+&&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+&RSTSEG FNSNESE   16 9081 DREF   9042 FXGET + FXGTR
+&ADICRS FNSNESE   16 9081 DREF   9036 UHE S. MESA
+&ADICRS FNSNESE   16 9081 DREF   9097 FATOR NORTE
+&ADICRS FNSNESE   16 9081 DREF   9089 FATOR NORTE 2
+&ADICRS FNSNESE   16 9081 DREF   9005 EXPN        
+&&&&&&&
+&&XXXX XXXX XXXXX XXXXX
+&PARAM   16 CARGA   SIN
+&&&&&&&
+&&XXXX XXXX XX XXXXXXXXX   
+&VPARM   16  1         0       
+&VPARM   16  2     72000    
+&VPARM   16  3     98000
+&&&&&&&
+&&mnem   num p i coefangula coeflin    2 contro   3 contro   4 contro   5 contro  
+&&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+&RESLPP   16 1 1      0.000      12100      0.000      0.000      0.000      0.000
+&RESLPP   16 1 2      0.000      12236     -0.530      0.000      0.000      0.000
+&RESLPP   16 1 3      0.000      16877      0.000      1.000      0.000      0.360
+&RESLPP   16 1 4      0.000      59491      0.000      0.000      1.000      1.000
+&RESLPP   16 1 5      0.000      17013     -0.530      1.000      0.000      0.360
+&RESLPP   16 1 6      0.000      59627     -0.530      0.000      1.000      1.000
+&RESLPP   16 1 7     -0.833      14617      0.000      0.000      0.000      0.000
+&RESLPP   16 1 8     -0.833      14753     -0.530      0.000      0.000      0.000
+&RESLPP   16 1 9     -0.833      19394      0.000      1.000      0.000      0.360
+&RESLPP   16 110     -0.833      62008      0.000      0.000      1.000      1.000
+&RESLPP   16 111     -0.833      19530     -0.530      1.000      0.000      0.360
+&RESLPP   16 112     -0.833      62144     -0.530      0.000      1.000      1.000
+&&
+&RESLPP   16 2 1      0.000      12100      0.000      0.000      0.000      0.000
+&RESLPP   16 2 2      0.000      12236     -0.530      0.000      0.000      0.000
+&RESLPP   16 2 3      0.000      16877      0.000      1.000      0.000      0.360
+&RESLPP   16 2 4      0.000      59491      0.000      0.000      1.000      1.000
+&RESLPP   16 2 5      0.000      17013     -0.530      1.000      0.000      0.360
+&RESLPP   16 2 6      0.000      59627     -0.530      0.000      1.000      1.000
+&RESLPP   16 2 7     -0.622      13865      0.000      0.000      0.000      0.000
+&RESLPP   16 2 8     -0.622      14001     -0.530      0.000      0.000      0.000
+&RESLPP   16 2 9     -0.622      18642      0.000      1.000      0.000      0.360
+&RESLPP   16 210     -0.622      61256      0.000      0.000      1.000      1.000
+&RESLPP   16 211     -0.622      18778     -0.530      1.000      0.000      0.360
+&RESLPP   16 212     -0.622      61392     -0.530      0.000      1.000      1.000
+&&
+&RESLPP   16 3 1      0.000      12100      0.000      0.000      0.000      0.000
+&RESLPP   16 3 2      0.000      12236     -0.530      0.000      0.000      0.000
+&RESLPP   16 3 3      0.000      16877      0.000      1.000      0.000      0.360
+&RESLPP   16 3 4      0.000      59491      0.000      0.000      1.000      1.000
+&RESLPP   16 3 5      0.000      17013     -0.530      1.000      0.000      0.360
+&RESLPP   16 3 6      0.000      59627     -0.530      0.000      1.000      1.000
+&RESLPP   16 3 7     -0.540      13823      0.000      0.000      0.000      0.000
+&RESLPP   16 3 8     -0.540      13959     -0.530      0.000      0.000      0.000
+&RESLPP   16 3 9     -0.540      18600      0.000      1.000      0.000      0.360
+&RESLPP   16 310     -0.540      61214      0.000      0.000      1.000      1.000
+&RESLPP   16 311     -0.540      18736     -0.530      1.000      0.000      0.360
+&RESLPP   16 312     -0.540      61350     -0.530      0.000      1.000      1.000
+&&
+& ==========================================================================================================================
+& Limite de RACRO Nº 17
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG RACRO     17 9076 CARGA   SIN AC RACRO (sem bypass) 
+&&&&&&
+&mnem   num p i coefangula coeflin     
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx   
+RESLPP   17 1 1        0.0        430                                            
+&
+& ==========================================================================================================================
+& Limite de FACRO Nº 18
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FACRO     18 9075 CARGA   SIN AC FACRO (sem bypass)
+&&&&&&
+&mnem   num p i coefangula coeflin     
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx   
+RESLPP   18 1 1        0.0        200                                            
+&
+& ==========================================================================================================================
+& Fluxo Norte Sudeste (FNS) Nº 101 
+& Em função do somatorio FXGTR e FXGET, FNNE E GER. SERRA DA MESA
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FNS      1011 907 RELE    942 FNS Em função do somatorio FXGTR e FXGET
+ADICRS FNS      1011 907 RELE    936 GER. SERRA DA MESA
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM  101 CARGA   SIN
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM  101  1         0   
+VPARM  101  2     72000    
+VPARM  101  3     98000    
+&
+&mnem   num p i coefangula coeflin    2 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP  101 1 1      0.000       5200      0.000                                 
+RESLPP  101 1 2      0.000       5300     -0.339                                 
+RESLPP  101 1 3     -0.387       6543      0.000                                 
+RESLPP  101 1 4     -0.387       6643     -0.339                                 
+&
+RESLPP  101 2 1      0.000       5400      0.000                                 
+RESLPP  101 2 2      0.000       5500     -0.339                                 
+RESLPP  101 2 3     -0.387       6743      0.000                                 
+RESLPP  101 2 4     -0.387       6843     -0.339                                 
+&
+RESLPP  101 3 1      0.000       5400      0.000                                 
+RESLPP  101 3 2      0.000       5500     -0.339                                 
+RESLPP  101 3 3     -0.368       6818      0.000                                 
+RESLPP  101 3 4     -0.368       6918     -0.339                                 
+&
+& ==========================================================================================================================
+& Limite Importacao SE/CO (IMP_SECO) Nº 102
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG IMPSECO  1021 957 CARGA    SE Limite Importacao SE/CO
+ADICRS IMPSECO  1021 957 RELE    967 UFVs + MMGD do SE/CO
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM  102 CARGA   SIN
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM  102  1         0   
+VPARM  102  2     72000  
+&
+&mnem   num p i coefangula coeflin    2 contro    
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx   
+RESLPP  102 1 1       0.65         0       -0.65                                 
+&
+RESLPP  102 2 1       0.60         0       -0.60                                 
+&
+& ==========================================================================================================================
+&& Fluxo Norte Sudeste (FNS) Nº 103 
+&& Em função do somatorio FXGTR e FXGET, F. IMPERATRIZ - P.DUTRA E GER. SERRA DA MESA
+&& Para UHE Serra da Mesa operando com apenas 2 UGs
+&&
+&&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+&RSTSEG FNS      1031 907 RELE    910 FNS Em função do somatorio FXGTR e FXGET
+&ADICRS FNS      1031 907 RELE    924 GER. SERRA DA MESA
+&&&&&&&
+&&XXXX XXXX XXXXX XXXXX
+&PARAM  103 CARGA   SIN
+&&&&&&&
+&&XXXX XXXX XX XXXXXXXXX   
+&VPARM  103  1         0   
+&VPARM  103  2     72000    
+&VPARM  103  3     98000    
+&&
+&&mnem   num p i coefangula coeflin    2 contro  
+&&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+&RESLPP  103 1 1      0.000       5200      0.000                                 
+&RESLPP  103 1 2      0.000       5300     -0.339                                 
+&RESLPP  103 1 3     -0.387       6343      0.000                                 
+&RESLPP  103 1 4     -0.387       6443     -0.339                                 
+&&
+&RESLPP  103 2 1      0.000       5400      0.000                                 
+&RESLPP  103 2 2      0.000       5500     -0.339                                 
+&RESLPP  103 2 3     -0.387       6543      0.000                                 
+&RESLPP  103 2 4     -0.387       6643     -0.339                                 
+&&
+&RESLPP  103 3 1      0.000       5400      0.000                                 
+&RESLPP  103 3 2      0.000       5500     -0.339                                 
+&RESLPP  103 3 3     -0.368       6618      0.000                                 
+&RESLPP  103 3 4     -0.368       6718     -0.339                                 
+&&
+& ==========================================================================================================================
+& Limite Fluxo Estreito - Xingu + TerminalRio - Xingu (FETXG + FTRXG) Nº 104
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FETTRXG  1041 960 CARGA   SIN Fluxo Estreito-Xingu + TerminalRio-Xingu
+&&&&&&
+&mnem   num p i coefangula coeflin     
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx   
+RESLPP  104 1 1        0.0       4200                                            
+&
+& ==========================================================================================================================
+& Limite Fluxo FAmazonas x Ger. UTE Maua 3 Nº 105
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FETTRXG  1051 923 RELE    937 FAmazonas x Ger. UTE Maua
+&&&&&&
+&mnem   num p i coefangula coeflin     
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx   
+RESLPP  105 1 1        0.0        500                                            
+RESLPP  105 1 2      0.834        208                                            
+&
+& ==========================================================================================================================
+& Recebimento Sudeste (RSE) Nº 106 
+& Em função da soma de bipolos
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG RSE      1061 911 RELE    912 RSE em função de FBIPS
+ADICRS RSE      1061 911 RELE    995 GTER
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM  106 CARGA   SIN
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM  106  1         0    
+VPARM  106  2     72000
+VPARM  106  3     82000    
+&&&&&&
+&mnem   num p i coefangula coeflin    2 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP  106 1 1      0.000      12000      0.000                                 
+RESLPP  106 1 2      0.000      10400      0.500                                 
+RESLPP  106 1 3     -0.239      14299      0.000                                 
+RESLPP  106 1 4     -0.239      12699      0.500                                 
+&                               
+RESLPP  106 2 1      0.000      11500      0.000                                 
+RESLPP  106 2 2      0.000       9900      0.500                                 
+RESLPP  106 2 3     -0.287      14127      0.000                                 
+RESLPP  106 2 4     -0.287      12527      0.500                                 
+&                               
+RESLPP  106 3 1      0.000      11500      0.000                                 
+RESLPP  106 3 2      0.000       9900      0.500                                 
+RESLPP  106 3 3     -0.383      14782      0.000                                 
+RESLPP  106 3 4     -0.383      13182      0.500                                 
+&
+& ==========================================================================================================================   
+& Fluxo Jurupari - Oriximiná (FJPOR) Nº 107
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FJPOR    1071 921 RELE    929 FJPOR em função Carga AM sMMGD
+&&&&&&
+&mnem   num p i coefangula coeflin    
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx 
+RESLPP  107 1 1     0.4500                                                       
+&
+& ==========================================================================================================================                                                                 
+& Fluxo Xingu - Jurupari (FXGJP) Nº 108
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FXGJP    1081 919 RELE    930 FXGJP - Carga (AP + AM) sMMGD
+&&&&&&&
+&mnem   num p i coefangula coeflin    
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx 
+RESLPP  108 1 1     0.4500                                                       
+&
+& ==========================================================================================================================
+& Fluxo FNS + FNESE Nº 110  
+& Em função do FNXG e UHEs Tucurui, Serra da Mesa, Belo Monte e Estreito
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FNSNESE  1101 981 RELE    909 FNXG
+ADICRS FNSNESE  1101 981 RELE    927 UHE Tucurui
+ADICRS FNSNESE  1101 981 RELE    939 UHE S. MESA
+ADICRS FNSNESE  1101 981 RELE    956 UHE B. MONTE
+ADICRS FNSNESE  1101 981 RELE    969 UHE ESTREITO
+&&&&&&
+&mnem   num p i coefangula coeflin    2 contro   3 contro   4 contro   5 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP  110 1 1      0.000      12100      0.000      0.000      0.000      0.000
+RESLPP  110 1 2      0.000      12236      0.000     -0.530      0.000      0.000
+RESLPP  110 1 3      0.000      11649      0.291      0.000      0.000      0.000
+RESLPP  110 1 4      0.000      11785      0.291     -0.530      0.000      0.000
+RESLPP  110 1 5     -1.063      15074      0.000      0.000      0.000      0.000
+RESLPP  110 1 6     -1.063      15210      0.000     -0.530      0.000      0.000
+RESLPP  110 1 7     -1.063      14623      0.291      0.000      0.000      0.000
+RESLPP  110 1 8     -1.063      14442      0.130      0.000      0.160      0.180
+RESLPP  110 1 9     -1.063      14127      0.421     -0.530      0.160      0.180
+RESLPP  110 110     -2.744      23262      0.000      0.000      0.000      0.000
+RESLPP  110 111     -2.744      23398      0.000     -0.530      0.000      0.000
+RESLPP  110 112     -2.744      22811      0.291      0.000      0.000      0.000
+RESLPP  110 113     -2.744      23304      0.160      0.000      0.190      0.210
+RESLPP  110 114     -2.744      22989      0.451     -0.530      0.190      0.210
+&
+& ==========================================================================================================================
+& Fluxo Nordeste Sudeste (FNESE) Nº 112
+& Em função do FXGET + FXGTR
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FNESE    1121 982 RELE    949 FXGET + FXGTR
+ADICRS FNESE    1121 982 RELE    948 GER BELO MONTE
+ADICRS FNESE    1121 982 RELE    933 GER TUCURUI
+ADICRS FNESE    1121 982 RELE    932 GER ESTREITO
+&&&&&&
+&mnem   num p i coefangula coeflin    2 contro   3 contro   4 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP  112 1 1        0.0       7200      0.000      0.000      0.000           
+RESLPP  112 1 2        0.0       7124     -0.033     -0.028     -0.037           
+RESLPP  112 1 3     -0.085       7493      0.000      0.000      0.000           
+RESLPP  112 1 4     -0.085       7417     -0.033     -0.028     -0.037           
+&
+& ==========================================================================================================================
+& Fluxo Norte Sudeste + Fluxo Norte Sudeste (FNS + FNESE) Nº 113
+& Em função do FXGET + FXGTR e a UHE S. MESA
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG FNSNESE  1131 981 RELE    950 FXGET + FXGTR
+ADICRS FNSNESE  1131 981 RELE    947 UHE S. MESA
+ADICRS FNSNESE  1131 981 RELE    997 FATOR NORTE
+ADICRS FNSNESE  1131 981 RELE    989 FATOR NORTE 2
+ADICRS FNSNESE  1131 981 RELE    902 EXP NORTE
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM  113 CARGA   SIN
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM  113  1         0       
+VPARM  113  2     72000    
+VPARM  113  3     98000
+&&&&&&
+&mnem   num p i coefangula coeflin    2 contro   3 contro   4 contro   5 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+RESLPP  113 1 1      0.000      12100      0.000      0.000      0.000      0.000
+RESLPP  113 1 2      0.000      12236     -0.530      0.000      0.000      0.000
+RESLPP  113 1 3      0.000      16877      0.000      1.000      0.000      0.360
+RESLPP  113 1 4      0.000      59491      0.000      0.000      1.000      1.000
+RESLPP  113 1 5      0.000       9123      0.000      1.000      0.000      0.000
+RESLPP  113 1 6      0.000      17013     -0.530      1.000      0.000      0.360
+RESLPP  113 1 7      0.000      59627     -0.530      0.000      1.000      1.000
+RESLPP  113 1 8      0.000       9259     -0.530      1.000      0.000      0.000
+RESLPP  113 1 9     -0.833      14817      0.000      0.000      0.000      0.000
+RESLPP  113 110     -0.833      14953     -0.530      0.000      0.000      0.000
+RESLPP  113 111     -0.833      19594      0.000      1.000      0.000      0.360
+RESLPP  113 112     -0.833      62208      0.000      0.000      1.000      1.000
+RESLPP  113 113     -0.833      11840      0.000      1.000      0.000      0.000
+RESLPP  113 114     -0.833      19730     -0.530      1.000      0.000      0.360
+RESLPP  113 115     -0.833      62344     -0.530      0.000      1.000      1.000
+RESLPP  113 116     -0.833      11976     -0.530      1.000      0.000      0.000
+&
+RESLPP  113 2 1      0.000      12100      0.000      0.000      0.000      0.000
+RESLPP  113 2 2      0.000      12236     -0.530      0.000      0.000      0.000
+RESLPP  113 2 3      0.000      16877      0.000      1.000      0.000      0.360
+RESLPP  113 2 4      0.000      59491      0.000      0.000      1.000      1.000
+RESLPP  113 2 5      0.000       9123      0.000      1.000      0.000      0.000
+RESLPP  113 2 6      0.000      17013     -0.530      1.000      0.000      0.360
+RESLPP  113 2 7      0.000      59627     -0.530      0.000      1.000      1.000
+RESLPP  113 2 8      0.000       9259     -0.530      1.000      0.000      0.000
+RESLPP  113 2 9     -0.622      14065      0.000      0.000      0.000      0.000
+RESLPP  113 210     -0.622      14201     -0.530      0.000      0.000      0.000
+RESLPP  113 211     -0.622      18842      0.000      1.000      0.000      0.360
+RESLPP  113 212     -0.622      61456      0.000      0.000      1.000      1.000
+RESLPP  113 213     -0.622      11088      0.000      1.000      0.000      0.000
+RESLPP  113 214     -0.622      18978     -0.530      1.000      0.000      0.360
+RESLPP  113 215     -0.622      61592     -0.530      0.000      1.000      1.000
+RESLPP  113 216     -0.622      11224     -0.530      1.000      0.000      0.000
+&
+RESLPP  113 3 1      0.000      12100      0.000      0.000      0.000      0.000
+RESLPP  113 3 2      0.000      12236     -0.530      0.000      0.000      0.000
+RESLPP  113 3 3      0.000      16877      0.000      1.000      0.000      0.360
+RESLPP  113 3 4      0.000      59491      0.000      0.000      1.000      1.000
+RESLPP  113 3 5      0.000       9123      0.000      1.000      0.000      0.000
+RESLPP  113 3 6      0.000      17013     -0.530      1.000      0.000      0.360
+RESLPP  113 3 7      0.000      59627     -0.530      0.000      1.000      1.000
+RESLPP  113 3 8      0.000       9259     -0.530      1.000      0.000      0.000
+RESLPP  113 3 9     -0.540      14023      0.000      0.000      0.000      0.000
+RESLPP  113 310     -0.540      14159     -0.530      0.000      0.000      0.000
+RESLPP  113 311     -0.540      18800      0.000      1.000      0.000      0.360
+RESLPP  113 312     -0.540      61414      0.000      0.000      1.000      1.000
+RESLPP  113 313     -0.540      11046      0.000      1.000      0.000      0.000
+RESLPP  113 314     -0.540      18936     -0.530      1.000      0.000      0.360
+RESLPP  113 315     -0.540      61550     -0.530      0.000      1.000      1.000
+RESLPP  113 316     -0.540      11182     -0.530      1.000      0.000      0.000
+&
+& ==========================================================================================================================
+& Fluxo Recebimento Sul (RSUL) Nº 114
+& Em funcao da GPC
+&
+&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RSTSEG RSUL     1141 959 RELE    994 GTER
+ADICRS RSUL     1141 959 RELE    996 GIPU
+&&&&&&
+&XXXX XXXX XXXXX XXXXX
+PARAM  114 CARGA     S
+&&&&&&
+&XXXX XXXX XX XXXXXXXXX   
+VPARM  114  1         0
+VPARM  114  2     13000
+&&&&&&
+&mnem   num p i coefangula coeflin   2 contro  
+&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxxxxxxxxxxxx
+&Ajuste conforme SGIs 57.588-23 e 66.352-23
+RESLPP  114 1 1      0.000      11700     0.000
+RESLPP  114 1 2      1.000       8500     0.000
+RESLPP  114 1 3      0.000       7852     0.585
+&                               
+RESLPP  114 2 1      0.000      11700     0.000
+RESLPP  114 2 2      1.000       8500     0.000
+&                                                      
+&& ==========================================================================================================================
+&& Fluxo Norte Sudeste + Fluxo Norte Sudeste (FNS + FNESE) Nº 116
+&& Em função do FXGET + FXGTR e a UHE S. MESA
+&& Para UHE Serra da Mesa operando com 2UGs
+&&
+&&MNEM  CHA1    NUM  DREF CHAVE IDENT   DESCRICAO
+&&XXXXX xxxxxxx XXXX XXXX xxxxx xxxxx XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+&RSTSEG FNSNESE  1161 981 RELE    926 FXGET + FXGTR
+&ADICRS FNSNESE  1161 981 RELE    931 UHE S. MESA
+&ADICRS FNSNESE  1161 981 RELE    998 FATOR NORTE
+&ADICRS FNSNESE  1161 981 RELE    990 FATOR NORTE 2
+&ADICRS FNSNESE  1161 981 RELE    908 EXPN         
+&&&&&&&
+&&XXXX XXXX XXXXX XXXXX
+&PARAM  116 CARGA   SIN
+&&&&&&&
+&&XXXX XXXX XX XXXXXXXXX   
+&VPARM  116  1         0       
+&VPARM  116  2     72000    
+&VPARM  116  3     98000
+&&&&&&&
+&&mnem   num p i coefangula coeflin    2 contro   3 contro   4 contro   5 contro  
+&&xxxxx xxxx x x xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx
+&RESLPP  116 1 1      0.000      12100      0.000      0.000      0.000      0.000
+&RESLPP  116 1 2      0.000      12236     -0.530      0.000      0.000      0.000
+&RESLPP  116 1 3      0.000      16877      0.000      1.000      0.000      0.360
+&RESLPP  116 1 4      0.000      59491      0.000      0.000      1.000      1.000
+&RESLPP  116 1 5      0.000      17013     -0.530      1.000      0.000      0.360
+&RESLPP  116 1 6      0.000      59627     -0.530      0.000      1.000      1.000
+&RESLPP  116 1 7     -0.833      14617      0.000      0.000      0.000      0.000
+&RESLPP  116 1 8     -0.833      14753     -0.530      0.000      0.000      0.000
+&RESLPP  116 1 9     -0.833      19394      0.000      1.000      0.000      0.360
+&RESLPP  116 110     -0.833      62008      0.000      0.000      1.000      1.000
+&RESLPP  116 111     -0.833      19530     -0.530      1.000      0.000      0.360
+&RESLPP  116 112     -0.833      62144     -0.530      0.000      1.000      1.000
+&&
+&RESLPP  116 2 1      0.000      12100      0.000      0.000      0.000      0.000
+&RESLPP  116 2 2      0.000      12236     -0.530      0.000      0.000      0.000
+&RESLPP  116 2 3      0.000      16877      0.000      1.000      0.000      0.360
+&RESLPP  116 2 4      0.000      59491      0.000      0.000      1.000      1.000
+&RESLPP  116 2 5      0.000      17013     -0.530      1.000      0.000      0.360
+&RESLPP  116 2 6      0.000      59627     -0.530      0.000      1.000      1.000
+&RESLPP  116 2 7     -0.622      13865      0.000      0.000      0.000      0.000
+&RESLPP  116 2 8     -0.622      14001     -0.530      0.000      0.000      0.000
+&RESLPP  116 2 9     -0.622      18642      0.000      1.000      0.000      0.360
+&RESLPP  116 210     -0.622      61256      0.000      0.000      1.000      1.000
+&RESLPP  116 211     -0.622      18778     -0.530      1.000      0.000      0.360
+&RESLPP  116 212     -0.622      61392     -0.530      0.000      1.000      1.000
+&&
+&RESLPP  116 3 1      0.000      12100      0.000      0.000      0.000      0.000
+&RESLPP  116 3 2      0.000      12236     -0.530      0.000      0.000      0.000
+&RESLPP  116 3 3      0.000      16877      0.000      1.000      0.000      0.360
+&RESLPP  116 3 4      0.000      59491      0.000      0.000      1.000      1.000
+&RESLPP  116 3 5      0.000      17013     -0.530      1.000      0.000      0.360
+&RESLPP  116 3 6      0.000      59627     -0.530      0.000      1.000      1.000
+&RESLPP  116 3 7     -0.540      13823      0.000      0.000      0.000      0.000
+&RESLPP  116 3 8     -0.540      13959     -0.530      0.000      0.000      0.000
+&RESLPP  116 3 9     -0.540      18600      0.000      1.000      0.000      0.360
+&RESLPP  116 310     -0.540      61214      0.000      0.000      1.000      1.000
+&RESLPP  116 311     -0.540      18736     -0.530      1.000      0.000      0.360
+&RESLPP  116 312     -0.540      61350     -0.530      0.000      1.000      1.000
+&&

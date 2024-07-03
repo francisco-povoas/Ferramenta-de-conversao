@@ -1,0 +1,36 @@
+AREA
+  1      FOLGA FPM - RESERVA DE POTENCIA DO SIN 
+FIM
+&
+USINA
+&
+&RE G  T NUM
+&XX X  X XXX  XXXXXXXXXXXXX
+&SE
+  1    H 261  LAJEADO              
+  1    H  34  ILHA SOLTEIRA        
+  1    H  31  ITUMBIARA            
+  1    H  33  SAO SIMAO            
+  1    H  17  MARIMBONDO           
+  1    H  18  A.VERMELHA           
+  1    H   6  FURNAS               
+  1    H  24  EMBORCACAO           
+  1    H   8  L.C.BARRETO (ESTREITO)
+  1    H  25  N. PONTE             
+  1    H 251  SERRA DA MESA        
+  1    H  43  TRES IRMAOS          
+&S
+  1    H  93  PASSO FUNDO          
+  1    H  74  G.B.M                
+  1    H  76  G. NEY BRAGA (SEGREDO)
+  1    H  77  S. SANTIAGO          
+  1    H  78  S. OSORIO            
+  1    H  82  S. CAXIAS            
+  1    H  86  BARRA GRANDE         
+  1    H  90  C. NOVOS             
+  1    H  91  MACHADINHO           
+  1    H  92  ITÁ                  
+  1    H 103  FOZ DE CHAPECO       
+  1    H 115  G.P.SOUZA            
+FIM
+9999
