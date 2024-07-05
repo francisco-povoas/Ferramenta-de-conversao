@@ -17,7 +17,7 @@ def getdbarInformacoesDaLinha(line):
             'Geracao-Ativa':line[32:37].strip(),
             'Geracao-Reativa': line[37:42].strip(),
             'Geracao-Reativa-Minima': line[42:47].strip(),
-            'geracao-Reativa-Maxima':line[47:52].strip(),
+            'Geracao-Reativa-Maxima':line[47:52].strip(),
             'Barra-Controlada': line[52:58].strip(),
             'Carga-Ativa' : line[58:63].strip(),
             'Carga-Reativa': line[63:68].strip(),

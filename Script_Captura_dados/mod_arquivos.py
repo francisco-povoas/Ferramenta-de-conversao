@@ -92,6 +92,17 @@ class tratamentoGeralArquivos:
                 BUS_I    = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
                 BUS_TYPE = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tipo']
                 if BUS_TYPE == '': BUS_TYPE = '0' # Default
+                # DESSEM PQ = 0, PV = 1, ref V0 = 2
+                # MATPOWER PQ = 1, PV = 2, ref = 3, isolada = 4
+                if BUS_TYPE == '0':
+                    BUS_TYPE = '1'
+                elif BUS_TYPE == '1':
+                    BUS_TYPE = '2'
+                elif BUS_TYPE == '2':
+                    BUS_TYPE = '3'
+
+                # if (BUS_TYPE != '0' and BUS_TYPE != '1' and BUS_TYPE != '2' and BUS_TYPE != ''):
+                #     print('BUS_TYPE='+ BUS_TYPE)
 
                 BUS_AREA = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Area']
                 PD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Ativa']
@@ -214,18 +225,18 @@ class tratamentoGeralArquivos:
 
                 GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
                 PG = '' # OK
-                QG = 0.00 # ?
-                QMAX = 0.00 # ?
-                QMIN = 0.00 # ?
+                QG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa']
+                QMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Maxima']
+                QMIN = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Minima']
                 VG = '' # OK
-                MBASE = 100 # 100 MVA
+                MBASE = 100 # 100 MVA Arbitrado mas posso pegar no BLOCO DCTE
                 GEN_STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado']
                 PMAX = '' # usar a soma das CAPACIDADES?
                 PMIN = 0.00 # valor arbitrado
                 PC1 = 0.00
                 PC2 = 0.00
                 QC1MIN = 0.00
-                QC2MAX = 0.00
+                QC1MAX = 0.00
                 QC2MIN = 0.00
                 QC2MAX = 0.00
                 RAMP_AGC = 0.00
@@ -308,7 +319,7 @@ class tratamentoGeralArquivos:
                 'PC1': PC1,
                 'PC2': PC2,
                 'QC1MIN': QC1MIN,
-                'QC2MAX': QC2MAX ,
+                'QC1MAX': QC1MAX ,
                 'QC2MIN': QC2MIN ,
                 'QC2MAX': QC2MAX,
                 'RAMP_AGC': RAMP_AGC,
@@ -343,32 +354,76 @@ class tratamentoGeralArquivos:
             arquivo += 'mpc.bus = [\n'
 
             for BUS in self.mpcBus:
-                arquivo += '    '+self.mpcBus[BUS]['BUS_I']+'       '+self.mpcBus[BUS]['BUS_TYPE']+'       '+self.mpcBus[BUS]['PD']+'   '+self.mpcBus[BUS]['QD']+'   '+self.mpcBus[BUS]['GS']+'   '+self.mpcBus[BUS]['BS']+'     '+self.mpcBus[BUS]['AREA']+'     '+self.mpcBus[BUS]['VM']+'   '+self.mpcBus[BUS]['VA']+'   '+self.mpcBus[BUS]['BASEKV']+'     '+self.mpcBus[BUS]['ZONE']+'     '+self.mpcBus[BUS]['VMAX']+'     '+self.mpcBus[BUS]['VMIN']+';\n'
-            
+                # arquivo += '    '+self.mpcBus[BUS]['BUS_I']+'       '+self.mpcBus[BUS]['BUS_TYPE']+'       '+self.mpcBus[BUS]['PD']+'   '+self.mpcBus[BUS]['QD']+'   '+self.mpcBus[BUS]['GS']+'   '+self.mpcBus[BUS]['BS']+'     '+self.mpcBus[BUS]['AREA']+'     '+self.mpcBus[BUS]['VM']+'   '+self.mpcBus[BUS]['VA']+'   '+self.mpcBus[BUS]['BASEKV']+'     '+self.mpcBus[BUS]['ZONE']+'     '+self.mpcBus[BUS]['VMAX']+'     '+self.mpcBus[BUS]['VMIN']+';\n'
+                arquivo += (
+                    '    ' + str(self.mpcBus[BUS]['BUS_I']) + '       ' +
+                    str(self.mpcBus[BUS]['BUS_TYPE']) + '       ' +
+                    str(self.mpcBus[BUS]['PD']) + '   ' +
+                    str(self.mpcBus[BUS]['QD']) + '   ' +
+                    str(self.mpcBus[BUS]['GS']) + '   ' +
+                    str(self.mpcBus[BUS]['BS']) + '     ' +
+                    str(self.mpcBus[BUS]['AREA']) + '     ' +
+                    str(self.mpcBus[BUS]['VM']) + '   ' +
+                    str(self.mpcBus[BUS]['VA']) + '   ' +
+                    str(self.mpcBus[BUS]['BASEKV']) + '     ' +
+                    str(self.mpcBus[BUS]['ZONE']) + '     ' +
+                    str(self.mpcBus[BUS]['VMAX']) + '     ' +
+                    str(self.mpcBus[BUS]['VMIN']) + ';\n'
+                    )
+
             arquivo += '    ];\n'
             arquivo += '%\n'
             arquivo += '%% generator data\n'
             arquivo += '%	bus	Pg	Qg	Qmax	Qmin	Vg	mBase	status	Pmax	Pmin	Pc1	Pc2	Qc1min	Qc1max	Qc2min	Qc2max	ramp_agc	ramp_10	ramp_30	ramp_q	apf\n'
             arquivo += 'mpc.gen = [\n'
             
-
-            # criar for de escrita aqui para o mpc.gen
-
-
+            for chavebarra in self.mpcGen:
+                # print(self.mpcGen[chavebarra])
+                # arquivo += +self.mpcGen[chavebarra]['GEN_BUS']+' '+self.mpcGen[chavebarra]['PG']+' '+self.mpcGen[chavebarra]['QG']+' '+self.mpcGen[chavebarra]['QMAX']+' '+self.mpcGen[chavebarra]['QMIN']+' '+self.mpcGen[chavebarra]['VG']+' '+self.mpcGen[chavebarra]['MBASE']+' '+self.mpcGen[chavebarra]['GEN_STATUS']+' '+self.mpcGen[chavebarra]['PMAX']+' '+self.mpcGen[chavebarra]['PMIN']+' '+self.mpcGen[chavebarra]['PC1']+' '+self.mpcGen[chavebarra]['PC2']+' '+self.mpcGen[chavebarra]['QC1MIN']+' '+self.mpcGen[chavebarra]['QC1MAX']+' '+self.mpcGen[chavebarra]['QC2MIN']+' '+self.mpcGen[chavebarra]['QC2MAX']+' '+self.mpcGen[chavebarra]['RAMP_AGC']+' '+self.mpcGen[chavebarra]['RAMP_10']+' '+self.mpcGen[chavebarra]['RAMP_30']+' '+self.mpcGen[chavebarra]['RAMP_Q']+' '+self.mpcGen[chavebarra]['APF']+';\n'
+                arquivo += (
+                    str(self.mpcGen[chavebarra]['GEN_BUS']) + ' ' +
+                    str(self.mpcGen[chavebarra]['PG']) + ' ' +
+                    str(self.mpcGen[chavebarra]['QG']) + ' ' +
+                    str(self.mpcGen[chavebarra]['QMAX']) + ' ' +
+                    str(self.mpcGen[chavebarra]['QMIN']) + ' ' +
+                    str(self.mpcGen[chavebarra]['VG']) + ' ' +
+                    str(self.mpcGen[chavebarra]['MBASE']) + ' ' +
+                    str(self.mpcGen[chavebarra]['GEN_STATUS']) + ' ' +
+                    str(self.mpcGen[chavebarra]['PMAX']) + ' ' +
+                    str(self.mpcGen[chavebarra]['PMIN']) + ' ' +
+                    str(self.mpcGen[chavebarra]['PC1']) + ' ' +
+                    str(self.mpcGen[chavebarra]['PC2']) + ' ' +
+                    str(self.mpcGen[chavebarra]['QC1MIN']) + ' ' +
+                    str(self.mpcGen[chavebarra]['QC1MAX']) + ' ' +
+                    str(self.mpcGen[chavebarra]['QC2MIN']) + ' ' +
+                    str(self.mpcGen[chavebarra]['QC2MAX']) + ' ' +
+                    str(self.mpcGen[chavebarra]['RAMP_AGC']) + ' ' +
+                    str(self.mpcGen[chavebarra]['RAMP_10']) + ' ' +
+                    str(self.mpcGen[chavebarra]['RAMP_30']) + ' ' +
+                    str(self.mpcGen[chavebarra]['RAMP_Q']) + ' ' +
+                    str(self.mpcGen[chavebarra]['APF']) + ';\n'
+                    )
             
             arquivo += '    ];\n'
             arquivo += '%\n'
             arquivo += '%% branch data\n'
             arquivo += '%	fbus	tbus	r	x	b	rateA	rateB	rateC	ratio	angle	status	angmin	angmax\n'
             arquivo += 'mpc.branch = [\n'
-
-            # criar for de escrita aqui para o mpc.branch
-
             for linhaFromTo in self.mpcBranch:
-                # print(self.mpcBranch[linhaFromTo])
-                pass
-
                 # arquivo += '    '+self.mpcBranch[linhaFromTo]['F_BUS']+'     '+self.mpcBranch[linhaFromTo]['T_BUS']+self.mpcBranch[linhaFromTo]['BR_R']+self.mpcBranch[linhaFromTo]['BR_X']+self.mpcBranch[linhaFromTo]['BR_B']+self.mpcBranch[linhaFromTo]['RATE_A']+self.mpcBranch[linhaFromTo]['RATE_B']+self.mpcBranch[linhaFromTo]['RATE_C']+self.mpcBranch[linhaFromTo]['RATIO']+self.mpcBranch[linhaFromTo]['ANGLE']+self.mpcBranch[linhaFromTo]['STATUS']+self.mpcBranch[linhaFromTo]['ANGMIN']+self.mpcBranch[linhaFromTo]['ANGMAX']+';\n'
+                arquivo += (
+                '    ' + str(self.mpcBranch[linhaFromTo]['F_BUS']) + '     ' +
+                str(self.mpcBranch[linhaFromTo]['T_BUS']) +
+                str(self.mpcBranch[linhaFromTo]['BR_R']) +
+                str(self.mpcBranch[linhaFromTo]['BR_X']) +
+                str(self.mpcBranch[linhaFromTo]['BR_B']) +
+                str(self.mpcBranch[linhaFromTo]['RATE_A']) +
+                str(self.mpcBranch[linhaFromTo]['RATE_B']) +
+                str(self.mpcBranch[linhaFromTo]['RATE_C']) +
+                str(self.mpcBranch[linhaFromTo]['RATIO']) +
+                str(self.mpcBranch[linhaFromTo]['ANGLE']) +
+                str(self.mpcBranch[linhaFromTo]['STATUS']) +
+                str(self.mpcBranch[linhaFromTo]['ANGMIN']) +
+                str(self.mpcBranch[linhaFromTo]['ANGMAX']) + ';\n'
+            )
             arquivo += '];\n'
-
-            print(arquivo)
