@@ -231,7 +231,7 @@ class tratamentoGeralArquivos:
                 VG = '' # OK
                 MBASE = 100 # 100 MVA Arbitrado mas posso pegar no BLOCO DCTE
                 GEN_STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado']
-                PMAX = '' # usar a soma das CAPACIDADES?
+                PMAX = ''
                 PMIN = 0.00 # valor arbitrado
                 PC1 = 0.00
                 PC2 = 0.00
@@ -262,8 +262,8 @@ class tratamentoGeralArquivos:
                 # declarando antes do laco for as variaveis de geracao caso nao entre no if que elas sao usadas
                 geracaoUsinaHidraulica = 0.00
                 geracaoUsinaTermoeletrica = 0.00
-                capacidadeUsinaHidraulica = 0.00
-                capacidadeUsinaTermoeletrica = 0.00
+                geracaoMaximaUsinaHidraulica = 0.00
+                geracaoMaximaUsinaTermoeletrica = 0.00
                 nomeUsina = ''
                 for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
                     if(chaveNumeroBarra == GEN_BUS):
@@ -273,12 +273,12 @@ class tratamentoGeralArquivos:
                         for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
                             if(usina == nomeUsina):
                                 geracaoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-MW']
-                                capacidadeUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Capacidade-MW']
+                                geracaoMaximaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Maxima-MW']
 
                         for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
                             if(usina == nomeUsina):
                                 geracaoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-MW']
-                                capacidadeUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Capacidade-MW']
+                                geracaoMaximaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Maxima-MW']
                 
                 # Defendendo contra erro e somando potencias na barra
                 try: geracaoUsinaHidraulica = float(geracaoUsinaHidraulica)
@@ -289,14 +289,14 @@ class tratamentoGeralArquivos:
 
                 PG = geracaoUsinaHidraulica +  geracaoUsinaTermoeletrica 
 
-                # Defendendo contra erro e somando capacidades (Potencia max) na barra
-                try: capacidadeUsinaHidraulica = float(capacidadeUsinaHidraulica)
-                except: capacidadeUsinaHidraulica = 0.00
+                # Defendendo contra erro e somando geração maxima (Potencia max) na barra
+                try: geracaoMaximaUsinaHidraulica = float(geracaoMaximaUsinaHidraulica)
+                except: geracaoMaximaUsinaHidraulica = 0.00
 
-                try: capacidadeUsinaTermoeletrica = float(capacidadeUsinaTermoeletrica)
-                except: capacidadeUsinaTermoeletrica = 0.00
+                try: geracaoMaximaUsinaTermoeletrica = float(geracaoMaximaUsinaTermoeletrica)
+                except: geracaoMaximaUsinaTermoeletrica = 0.00
 
-                PMAX = capacidadeUsinaHidraulica + capacidadeUsinaTermoeletrica
+                PMAX = geracaoMaximaUsinaHidraulica + geracaoMaximaUsinaTermoeletrica
 
                 # if PMAX != 0.0:
                 #     print(PMAX)
