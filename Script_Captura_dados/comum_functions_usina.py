@@ -9,9 +9,10 @@ def getusinaHInformacoesDalinha(linearray):
             'Patamar': linearray[1].strip(),
             'Usina': linearray[3].strip(),
             'Sistema': linearray[4].strip(),
+            'Vagua-MWh': linearray[7].strip(),
             'Geracao-MW':linearray[32].strip(),
             'Geracao-Maxima-MW':linearray[33].strip(),
-            'Geracao-Minima-MW': '0.00', # Valor arbitrado
+            'Geracao-Minima-MW': '0.00', # Valor arbitrado, Não possui informação no arquivo
             'Capacidade-MW':linearray[34].strip(),
         }
     except Exception as error:
@@ -124,14 +125,20 @@ class coletaDadosUsinas:
                         infoLineArray = str(line).split(';')
                         infoLineArray.pop() # remove ultimo indice nao aproveitavel
 
-                        if '99' in infoLineArray[4]: # verificando se Unid == 99
+                        # Capturando CVU $/MWh
+                        if not '99' in infoLineArray[4]:
+                            try: custoLinear = infoLineArray[11]
+                            except: custoLinear = '0.00'
 
+                        if '99' in infoLineArray[4]: # verificando se Unid == 99
+    
                             # Ex usinaInfoHidraulicaLine = {'Estagio': '1', 'Patamar': 'LEVE', 'Usina': 'PIMENTAL', 'Sistema': 'N', 'Geracao-MW': '79.34', 'Geracao-Maxima-MW': '233.10', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '233.10'}, 'FOZ R. CLARO': {'Estagio': '1', 'Patamar': 'LEVE', 'Usina': 'FOZ R. CLARO', 'Sistema': 'SE', 'Geracao-MW': '6.92', 'Geracao-Maxima-MW': '34.20', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '68.40'}}
                             usinaInfoTermoeletricaLine, error = getusinaTInformacoesDalinha(infoLineArray)
                             if error: sys.exit()
 
-                            usina = usinaInfoTermoeletricaLine['Usina']
+                            usinaInfoTermoeletrica['Custo-Linear-MWh'] = custoLinear
 
+                            usina = usinaInfoTermoeletricaLine['Usina']
 
                             usinaInfoTermoeletrica[usina] = usinaInfoTermoeletricaLine
 
