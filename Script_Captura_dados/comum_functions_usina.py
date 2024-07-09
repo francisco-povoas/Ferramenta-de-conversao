@@ -14,6 +14,7 @@ def getusinaHInformacoesDalinha(linearray):
             'Geracao-Maxima-MW':linearray[33].strip(),
             'Geracao-Minima-MW': '0.00', # Valor arbitrado, Não possui informação no arquivo
             'Capacidade-MW':linearray[34].strip(),
+            'Tipo': 'H',
         }
     except Exception as error:
         print(error)
@@ -33,6 +34,7 @@ def getusinaTInformacoesDalinha(linearray):
             'Geracao-Minima-MW': linearray[7].strip(),
             'Geracao-Maxima-MW':linearray[8].strip(),
             'Capacidade-MW':linearray[9].strip(),
+            'Tipo': 'T',
         }
     except Exception as error:
         print(error)
@@ -136,7 +138,7 @@ class coletaDadosUsinas:
                             usinaInfoTermoeletricaLine, error = getusinaTInformacoesDalinha(infoLineArray)
                             if error: sys.exit()
 
-                            usinaInfoTermoeletrica['Custo-Linear-MWh'] = custoLinear
+                            usinaInfoTermoeletricaLine['Custo-Linear-MWh'] = custoLinear
 
                             usina = usinaInfoTermoeletricaLine['Usina']
 

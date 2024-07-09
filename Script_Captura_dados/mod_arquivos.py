@@ -65,12 +65,13 @@ class tratamentoGeralArquivos:
             self.montandoEstruturaMpcBus()
             self.montandoEstruturaMpcBranch()
             self.montandoEstruturaMpcGen()
+            self.montaArquivoMatPower()
+            self.escreveArquivoMatPower()
 
-            self.montaArquivoMatCad()
+            self.montaArquivoMatPower()
 
         def montandoEstruturaMpcBus(self):
             self.mpcBus = {}
-            # cont = 1
 
             # pegando dados para montar bus_data (mpc.bus)
             for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
@@ -167,7 +168,6 @@ class tratamentoGeralArquivos:
                 RATE_A = ''
                 RATE_B = ''
                 RATE_C = ''
-                RATIO = '0'
                 TAP = ''
                 ANGLE = ''
                 STATUS = ''
@@ -187,17 +187,17 @@ class tratamentoGeralArquivos:
                 
                 # Tentando converter para PU 
                 try:
-                    BR_R = str(float(BR_R)/100)
+                    BR_R = str(round(float(BR_R)/100),5)
                 except:
                     pass
                 
                 try:
-                    BR_X = str(float(BR_X)/100)
+                    BR_X = str(round(float(BR_X)/100),5)
                 except:
                     pass
 
                 try:
-                    BR_B = str(float(BR_B)/100)
+                    BR_B = str(round(float(BR_B)/100),5)
                 except:
                     pass
 
@@ -222,11 +222,11 @@ class tratamentoGeralArquivos:
             for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
 
                 GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
-                PG = '' # OK
+                PG = ''
                 QG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa']
                 QMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Maxima']
                 QMIN = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Minima']
-                VG = '' # OK
+                VG = ''
                 MBASE = 100 # 100 MVA Arbitrado mas posso pegar no BLOCO DCTE
                 GEN_STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado']
                 PMAX = ''
@@ -248,7 +248,6 @@ class tratamentoGeralArquivos:
                 # "D" => A barra está desligada;
                 GEN_STATUS = '0' if GEN_STATUS == 'D' else '1'
 
-                # Duvida o VG eh igual ao VM do mpcbus, qual a diferenca! por enquanto vou usar o mesmo...
                 VG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tensao'] # Preciso dividir pelo Tensao-Nominal-Grupo-Base-KV do bloco DGBT
                 
                 Grupo_De_Base_De_Tensao = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Grupo-De-Base-De-Tensao'] # usado apenas para pegar a tensao base no bloco dgbt
@@ -258,73 +257,83 @@ class tratamentoGeralArquivos:
                 VG = (float(VG)/float(BASEKV))
 
                 # declarando antes do laco for as variaveis de geracao caso nao entre no if que elas sao usadas
-                geracaoUsinaHidraulica = '0.00'
-                geracaoMaximaUsinaHidraulica = '0.00'
-                geracaoMinimaUsinaHidraulica = '0.00'
-                geracaoUsinaTermoeletrica = '0.00'
-                geracaoMaximaUsinaTermoeletrica = '0.00'
-                geracaoMinimaUsinaTermoeletrica = '0.00'
+                geracaoUsinaHidraulica = 0.00
+                geracaoMaximaUsinaHidraulica = 0.00
+                geracaoMinimaUsinaHidraulica = 0.00
+                geracaoUsinaTermoeletrica = 0.00
+                geracaoMaximaUsinaTermoeletrica = 0.00
+                geracaoMinimaUsinaTermoeletrica = 0.00
                 
                 ### MPC GENCOST ####
-                custoUsinaHidraulica = '0.00'
-                custoUsinaTermoeletrica = '0.00'
-                CVU = '0.00'
+                custoUsinaHidraulica = 0.00
+                custoUsinaTermoeletrica = 0.00
+                CVU = 0.00
                 ####
 
-                nomeUsina = ''
+                ### MPC GENNAME ####
+                TIPO = ''
+                ####
+
+                NOME_USINA = ''
                 for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
+                    two = 0
                     if(chaveNumeroBarra == GEN_BUS):
                         
-                        nomeUsina = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
+                        NOME_USINA = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
 
                         for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
-                            if(usina == nomeUsina):
+                            if(usina == NOME_USINA):
+                                two += 1
                                 geracaoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-MW']
                                 geracaoMaximaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Maxima-MW']
                                 geracaoMinimaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Minima-MW']
                                 custoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Vagua-MWh']
+                                TIPO = 'H'
 
                         for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
-                            if(usina == nomeUsina):
+                            if(usina == NOME_USINA):
+                                two += 1
                                 geracaoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-MW']
                                 geracaoMaximaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Maxima-MW']
                                 geracaoMinimaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Minima-MW']
                                 custoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Custo-Linear-MWh']
+                                TIPO = 'T'
 
                 # Defendendo contra erro e somando potencias na barra
                 try: geracaoUsinaHidraulica = float(geracaoUsinaHidraulica)
-                except: geracaoUsinaHidraulica == '0.00'
+                except: geracaoUsinaHidraulica == 0.00
 
                 try: geracaoUsinaTermoeletrica = float(geracaoUsinaTermoeletrica)
-                except: geracaoUsinaTermoeletrica == '0.00'
+                except: geracaoUsinaTermoeletrica == 0.00
 
                 PG = geracaoUsinaHidraulica +  geracaoUsinaTermoeletrica 
 
                 # Defendendo contra erro e somando geração maxima (Potencia max) na barra
                 try: geracaoMaximaUsinaHidraulica = float(geracaoMaximaUsinaHidraulica)
-                except: geracaoMaximaUsinaHidraulica = '0.00'
+                except: geracaoMaximaUsinaHidraulica = 0.00
 
                 try: geracaoMaximaUsinaTermoeletrica = float(geracaoMaximaUsinaTermoeletrica)
-                except: geracaoMaximaUsinaTermoeletrica = '0.00'
+                except: geracaoMaximaUsinaTermoeletrica = 0.00
 
                 PMAX = geracaoMaximaUsinaHidraulica + geracaoMaximaUsinaTermoeletrica
 
                 # Defendendo contra erro e somando geração minima (Potencia min) na barra
                 try: geracaoMinimaUsinaHidraulica = float(geracaoMinimaUsinaHidraulica)
-                except: geracaoMinimaUsinaHidraulica = '0.00'
+                except: geracaoMinimaUsinaHidraulica = 0.00
 
                 try: geracaoMinimaUsinaTermoeletrica = float(geracaoMinimaUsinaTermoeletrica)
-                except: geracaoMinimaUsinaHidraulica = '0.00'
+                except: geracaoMinimaUsinaHidraulica = 0.00
 
                 PMIN = geracaoMinimaUsinaHidraulica + geracaoMinimaUsinaTermoeletrica
 
                 try: custoUsinaHidraulica = float(custoUsinaHidraulica)
-                except: custoUsinaHidraulica = '0.00'
+                except: custoUsinaHidraulica = 0.00
 
                 try: custoUsinaTermoeletrica = float(custoUsinaTermoeletrica)
-                except: custoUsinaTermoeletrica = '0.00'
 
-                CVU = custoUsinaHidraulica + custoUsinaHidraulica
+                except: custoUsinaTermoeletrica = 0.00
+
+                CVU = custoUsinaHidraulica + custoUsinaTermoeletrica
 
                 # chavebarra = 'barra-10', 'barra-50'....
                 self.mpcGen[chavebarra] = {
@@ -350,33 +359,38 @@ class tratamentoGeralArquivos:
                 'RAMP_Q': RAMP_Q,
                 'APF': APF,
                 'CVU': CVU, # Usado no mpc gencost
+                'TIPO': TIPO, # Usado no mpc genname
+                'NOME_USINA': NOME_USINA,
                 }
+                # f.write(str(self.mpcGen[chavebarra]['GEN_BUS']) +' '+str(+self.mpcGen[chavebarra]['CVU'])+'\n' )
+                
+        def montaArquivoMatPower(self):
 
-        def montaArquivoMatCad(self):
+            self.arquivoCabecalho = ''
+            self.arquivoCabecalho += 'function mpc = '+self.informacoesEstagio.patamar+'\n'
+            self.arquivoCabecalho += '% CASO SIN: extraido dos arquivos de dados do DESSEM\n'
+            self.arquivoCabecalho += '%\n'
+            self.arquivoCabecalho += '% CASO SIN: Fluxo de Potencia do SIN extraido de arquivo de dados do DESSEM\n'
+            self.arquivoCabecalho += '% Autor Francisco Povoas\n'
+            self.arquivoCabecalho += '%\n'
+            self.arquivoCabecalho += '%   MATPOWER\n'
+            self.arquivoCabecalho += '%\n'
+            self.arquivoCabecalho += '%% MATPOWER Case Format : Version 2\n'
+            self.arquivoCabecalho += 'mpc.version = \'2\';\n'
+            self.arquivoCabecalho += '%\n'
+            self.arquivoCabecalho += '%%-----  Power Flow Data  -----%%\n'
+            self.arquivoCabecalho += '%\n'
+            self.arquivoCabecalho += '%% system MVA base\n'
+            self.arquivoCabecalho += 'mpc.baseMVA = 100;\n'
 
-            arquivo = ''
-            arquivo += 'function mpc = '+self.informacoesEstagio.patamar+'\n'
-            arquivo += '% CASO SIN: extraido dos arquivos de dados do DESSEM\n'
-            arquivo += '%\n'
-            arquivo += '% CASO SIN: Fluxo de Potencia do SIN extraido de arquivo de dados do DESSEM\n'
-            arquivo += '% Autor Francisco Povoas\n'
-            arquivo += '%\n'
-            arquivo += '%   MATPOWER\n'
-            arquivo += '%\n'
-            arquivo += '%% MATPOWER Case Format : Version 2\n'
-            arquivo += 'mpc.version = \'2\';\n'
-            arquivo += '%\n'
-            arquivo += '%%-----  Power Flow Data  -----%%\n'
-            arquivo += '%\n'
-            arquivo += '%% system MVA base\n'
-            arquivo += 'mpc.baseMVA = 100;\n'
-            arquivo += '%\n'
-            arquivo += '%% bus data\n'
-            arquivo += '%	bus_i	type	Pd	Qd	Gs	Bs	area	Vm	Va	baseKV	zone	Vmax	Vmin\n'
-            arquivo += 'mpc.bus = [\n'
+            self.arquivoCabecalho += '%\n'
+            self.arquivobusData = ''
+            self.arquivobusData += '%% bus data\n'
+            self.arquivobusData += '%	bus_i	type	Pd	Qd	Gs	Bs	area	Vm	Va	baseKV	zone	Vmax	Vmin\n'
+            self.arquivobusData += 'mpc.bus = [\n'
 
             for BUS in self.mpcBus:
-                arquivo += (
+                self.arquivobusData += (
                     '    ' + str(self.mpcBus[BUS]['BUS_I']) + '       ' +
                     str(self.mpcBus[BUS]['BUS_TYPE']) + '       ' +
                     str(self.mpcBus[BUS]['PD']) + '   ' +
@@ -392,15 +406,32 @@ class tratamentoGeralArquivos:
                     str(self.mpcBus[BUS]['VMIN']) + ';\n'
                     )
 
-            arquivo += '    ];\n'
-            arquivo += '%\n'
-            arquivo += '%% generator data\n'
-            arquivo += '%	bus	Pg	Qg	Qmax	Qmin	Vg	mBase	status	Pmax	Pmin	Pc1	Pc2	Qc1min	Qc1max	Qc2min	Qc2max	ramp_agc	ramp_10	ramp_30	ramp_q	apf\n'
-            arquivo += 'mpc.gen = [\n'
+            self.arquivobusData += '    ];\n'
+            self.arquivobusData += '%\n'
+
+            self.arquivoGeneratorData = ''
+            self.arquivoGeneratorData += '%% generator data\n'
+            self.arquivoGeneratorData += '%	bus	Pg	Qg	Qmax	Qmin	Vg	mBase	status	Pmax	Pmin	Pc1	Pc2	Qc1min	Qc1max	Qc2min	Qc2max	ramp_agc	ramp_10	ramp_30	ramp_q	apf\n'
+            self.arquivoGeneratorData += 'mpc.gen = [\n'
             
+            self.arquivoGeneratorCostData = ''
+            self.arquivoGeneratorCostData += '%%----- OPF Data -----%%\n'
+            self.arquivoGeneratorCostData += '%% generator cost data\n'
+            self.arquivoGeneratorCostData += '%	1	startup	shutdown	n	x1	y1	...	xn	yn\n'
+            self.arquivoGeneratorCostData += '%	2	startup	shutdown	n	c(n-1)	...	c0\n'
+            self.arquivoGeneratorCostData += 'mpc.gencost = [\n'
+
+
+            self.arquivoGeneratorName = ''
+            self.arquivoGeneratorName += '%% generator name\n'
+            self.arquivoGeneratorName += '%	bus	tipo name\n'
+            self.arquivoGeneratorName += 'mpc.genname = [\n'
+
             for chavebarra in self.mpcGen:
-                arquivo += (
-                    str(self.mpcGen[chavebarra]['GEN_BUS']) + ' ' +
+
+                # mpcgen
+                self.arquivoGeneratorData += (
+                    '    ' +str(self.mpcGen[chavebarra]['GEN_BUS']) + ' ' +
                     str(self.mpcGen[chavebarra]['PG']) + ' ' +
                     str(self.mpcGen[chavebarra]['QG']) + ' ' +
                     str(self.mpcGen[chavebarra]['QMAX']) + ' ' +
@@ -422,26 +453,61 @@ class tratamentoGeralArquivos:
                     str(self.mpcGen[chavebarra]['RAMP_Q']) + ' ' +
                     str(self.mpcGen[chavebarra]['APF']) + ';\n'
                     )
-            
-            arquivo += '    ];\n'
-            arquivo += '%\n'
-            arquivo += '%% branch data\n'
-            arquivo += '%	fbus	tbus	r	x	b	rateA	rateB	rateC	ratio	angle	status	angmin	angmax\n'
-            arquivo += 'mpc.branch = [\n'
+                
+                # mpcgencost
+                self.arquivoGeneratorCostData += (
+                    '2' + ' ' +
+                    '0' + ' ' +
+                    '0' + ' ' +
+                    '2' + ' ' +
+                    str(self.mpcGen[chavebarra]['CVU']) + ' ' +
+                    '0' + ';\n'
+                    )
+                
+                # mpcgenname
+                self.arquivoGeneratorName += (
+                    str(self.mpcGen[chavebarra]['GEN_BUS']) + ' ' +
+                    str(self.mpcGen[chavebarra]['TIPO']) + ' ' +
+                    str(self.mpcGen[chavebarra]['NOME_USINA']) + ';\n'
+                    )
+
+            self.arquivoGeneratorData += '    ];\n'
+            self.arquivoGeneratorData += '%\n'
+
+            self.arquivoGeneratorCostData += '    ];\n'
+            self.arquivoGeneratorCostData += '%\n'
+
+            self.arquivoBranchData = ''
+            self.arquivoBranchData += '%% branch data\n'
+            self.arquivoBranchData += '%	fbus	tbus	r	x	b	rateA	rateB	rateC	ratio	angle	status	angmin	angmax\n'
+            self.arquivoBranchData += 'mpc.branch = [\n'
             for linhaFromTo in self.mpcBranch:
-                arquivo += (
-                '    ' + str(self.mpcBranch[linhaFromTo]['F_BUS']) + '     ' +
-                str(self.mpcBranch[linhaFromTo]['T_BUS']) +
-                str(self.mpcBranch[linhaFromTo]['BR_R']) +
-                str(self.mpcBranch[linhaFromTo]['BR_X']) +
-                str(self.mpcBranch[linhaFromTo]['BR_B']) +
-                str(self.mpcBranch[linhaFromTo]['RATE_A']) +
-                str(self.mpcBranch[linhaFromTo]['RATE_B']) +
-                str(self.mpcBranch[linhaFromTo]['RATE_C']) +
-                str(self.mpcBranch[linhaFromTo]['RATIO']) +
-                str(self.mpcBranch[linhaFromTo]['ANGLE']) +
-                str(self.mpcBranch[linhaFromTo]['STATUS']) +
-                str(self.mpcBranch[linhaFromTo]['ANGMIN']) +
+                self.arquivoBranchData += (
+                '    ' + str(self.mpcBranch[linhaFromTo]['F_BUS']) + '         ' +
+                str(self.mpcBranch[linhaFromTo]['T_BUS']) + '         ' +
+                str(self.mpcBranch[linhaFromTo]['BR_R']) + '         ' +
+                str(self.mpcBranch[linhaFromTo]['BR_X']) + '         ' +
+                str(self.mpcBranch[linhaFromTo]['BR_B']) + '         ' +
+                str(self.mpcBranch[linhaFromTo]['RATE_A']) + '     ' +
+                str(self.mpcBranch[linhaFromTo]['RATE_B']) + '     ' +
+                str(self.mpcBranch[linhaFromTo]['RATE_C']) + '     ' +
+                str(self.mpcBranch[linhaFromTo]['RATIO']) + '     ' +
+                str(self.mpcBranch[linhaFromTo]['ANGLE']) + '     ' +
+                str(self.mpcBranch[linhaFromTo]['STATUS']) + '     ' +
+                str(self.mpcBranch[linhaFromTo]['ANGMIN']) + '     ' +
                 str(self.mpcBranch[linhaFromTo]['ANGMAX']) + ';\n'
             )
-            arquivo += '];\n'
+            self.arquivoBranchData += '];\n'
+
+        def escreveArquivoMatPower(self):
+
+            # ds_ons_122023_rv0d29+'_'+'pat01'+'.m'
+            # 'ds_ons_122023_rv0d29_pat01.m'
+            with open(BLOCO_REVISAO+'_'+self.informacoesEstagio.patamar.split('.')[0]+'.m', 'w') as arquivoMatPower:
+
+                arquivoMatPower.write(self.arquivoCabecalho)
+                arquivoMatPower.write(self.arquivobusData)
+                arquivoMatPower.write(self.arquivoGeneratorData)
+                arquivoMatPower.write(self.arquivoBranchData)
+                arquivoMatPower.write(self.arquivoGeneratorCostData)
+                arquivoMatPower.write(self.arquivoGeneratorName)

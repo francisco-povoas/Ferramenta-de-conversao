@@ -15,3 +15,5 @@ PESADA_PWF = CAMINHO+'pesada.pwf'
 ########## Arquivos de Usinas #############
 USINA_HIDRAULICA = CAMINHO+'pdo_hidr.dat'
 USINA_TERMOELETRICA = CAMINHO+'pdo_term.dat'
+
+BLOCO_REVISAO = 'ds_ons_122023_rv0d29'
