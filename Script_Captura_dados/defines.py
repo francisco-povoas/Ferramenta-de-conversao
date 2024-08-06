@@ -1,19 +1,22 @@
-#Arquivo responsavel por guardar DEFINES
+# Arquivo responsavel por guardar DEFINES e caminho absoluto para leitura dos arquivos
 
-CAMINHO = '/home/francisco/Documents/TCC2/Script-dessem/ds_ons_122023_rv0d29/'
+# Caminho completo para os arquivos do Dessem
+CAMINHO = '/home/francisco/Documents/TCC2/Projeto/Ferramenta-de-conversao/'
 
-# Arquivo responsavel por informar o arquivo de caso base de acordo com o estagio requirido
-DESSELET_DAT = CAMINHO+'desselet.dat'
-
+# Pasta com arquivos Dessem obtido ONS
+BLOCO_REVISAO = 'ds_ons_122023_rv0d29'
 
 # Arquivos para coleta do caso base, antes da mudança de patamar
-LEVE_PWF = CAMINHO+'leve.pwf'
-MEDIA_PWF = CAMINHO+'media.pwf'
-PESADA_PWF = CAMINHO+'pesada.pwf'
-
+LEVE_PWF = CAMINHO+BLOCO_REVISAO+'/leve.pwf'
+MEDIA_PWF = CAMINHO+BLOCO_REVISAO+'/media.pwf'
+PESADA_PWF = CAMINHO+BLOCO_REVISAO+'/pesada.pwf'
 
 ########## Arquivos de Usinas #############
-USINA_HIDRAULICA = CAMINHO+'pdo_hidr.dat'
-USINA_TERMOELETRICA = CAMINHO+'pdo_term.dat'
+USINA_HIDRAULICA = CAMINHO+BLOCO_REVISAO+'/pdo_hidr.dat'
+USINA_TERMOELETRICA = CAMINHO+BLOCO_REVISAO+'/pdo_term.dat'
 
-BLOCO_REVISAO = 'ds_ons_122023_rv0d29'
+
+# Arquivo responsavel por informar o arquivo de caso base de acordo com o estagio requirido
+DESSELET_DAT = CAMINHO+BLOCO_REVISAO+'/desselet.dat'
+
+DIRETORIO_COM_RESULTADOS_DE_SAIDA = CAMINHO+'Resultados_Ferramenta_Computacional_'+BLOCO_REVISAO+'/'

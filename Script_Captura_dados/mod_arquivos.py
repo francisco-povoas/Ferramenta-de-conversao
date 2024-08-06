@@ -4,6 +4,7 @@ from comum_functions_base import *
 from comum_functions_patamar import *
 from comum_functions_usina import *
 from defines import *
+import os
 
 class coletaInfoEstagio:
     def __init__(self, estagio):
@@ -54,7 +55,7 @@ class tratamentoGeralArquivos:
             self.estagio = defineEstagio(hora, minuto)
             self.informacoesEstagio = coletaInfoEstagio(self.estagio)
             self.arquivoCasoBase = self.informacoesEstagio.arquivoBase    # Ex's .: leve.pwf, media.pwf, pesada.pwf
-            self.arquivoPatamar  = CAMINHO + self.informacoesEstagio.arquivoPatamar # Ex .: Diretorio/pat01.afp
+            self.arquivoPatamar  = CAMINHO+BLOCO_REVISAO+'/'+self.informacoesEstagio.arquivoPatamar # Ex .: Diretorio/pat01.afp
             
             self.informacoesBlocosArquivoBase = coletaBlocosArquivoBase(self.arquivoCasoBase)
 
@@ -102,14 +103,19 @@ class tratamentoGeralArquivos:
                 elif BUS_TYPE == '2':
                     BUS_TYPE = '3'
 
-                # if (BUS_TYPE != '0' and BUS_TYPE != '1' and BUS_TYPE != '2' and BUS_TYPE != ''):
-                #     print('BUS_TYPE='+ BUS_TYPE)
-
                 BUS_AREA = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Area']
                 PD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Ativa']
                 QD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Reativa']
-                if PD == '': PD = '0'
-                if QD == '': QD = '0'
+                
+                try:
+                    PD = float(PD)
+                except:
+                    PD = 0
+                
+                try:
+                    QD = float(QD)
+                except:
+                    QD = 0
                 
                 if BUS_AREA in self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase']:
                     FATOR_CORRECAO_CARGA = self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase'][BUS_AREA]['Fator-Correcao']
@@ -141,8 +147,8 @@ class tratamentoGeralArquivos:
                 self.mpcBus[BUS_I] = {
                     'BUS_I': BUS_I,
                     'BUS_TYPE': BUS_TYPE,
-                    'PD': str(PD),
-                    'QD': str(QD),
+                    'PD': str(round(PD,3)),
+                    'QD': str(round(QD,3)),
                     'GS': GS,
                     'BS': BS,
                     'AREA': BUS_AREA ,
@@ -371,7 +377,7 @@ class tratamentoGeralArquivos:
             self.arquivoCabecalho += '% CASO SIN: extraido dos arquivos de dados do DESSEM\n'
             self.arquivoCabecalho += '%\n'
             self.arquivoCabecalho += '% CASO SIN: Fluxo de Potencia do SIN extraido de arquivo de dados do DESSEM\n'
-            self.arquivoCabecalho += '% Autor Francisco Povoas\n'
+            self.arquivoCabecalho += '% Autores Francisco Povoas e Murilo Reolon\n'
             self.arquivoCabecalho += '%\n'
             self.arquivoCabecalho += '%   MATPOWER\n'
             self.arquivoCabecalho += '%\n'
@@ -501,9 +507,13 @@ class tratamentoGeralArquivos:
 
         def escreveArquivoMatPower(self):
 
+            # Se nao existe diretorio para escrever os resultado entao cria
+            if not os.path.isdir(DIRETORIO_COM_RESULTADOS_DE_SAIDA): os.makedirs(DIRETORIO_COM_RESULTADOS_DE_SAIDA)
+
+            # /home/francisco/Documents/TCC2/Projeto/Ferramenta-de-conversao/Resultados_Ferramenta_Computacional_ds_ons_122023_rv0d29/ds_ons_122023_rv0d29_pat01.m
             # ds_ons_122023_rv0d29+'_'+'pat01'+'.m'
             # 'ds_ons_122023_rv0d29_pat01.m'
-            with open(BLOCO_REVISAO+'_'+self.informacoesEstagio.patamar.split('.')[0]+'.m', 'w') as arquivoMatPower:
+            with open(DIRETORIO_COM_RESULTADOS_DE_SAIDA+BLOCO_REVISAO+'_'+self.informacoesEstagio.patamar.split('.')[0]+'.m', 'w') as arquivoMatPower :
 
                 arquivoMatPower.write(self.arquivoCabecalho)
                 arquivoMatPower.write(self.arquivobusData)
