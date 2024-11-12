@@ -69,8 +69,6 @@ class tratamentoGeralArquivos:
             self.montaArquivoMatPower()
             self.escreveArquivoMatPower()
 
-            self.montaArquivoMatPower()
-
         def montandoEstruturaMpcBus(self):
             self.mpcBus = {}
 
@@ -147,12 +145,12 @@ class tratamentoGeralArquivos:
                 self.mpcBus[BUS_I] = {
                     'BUS_I': BUS_I,
                     'BUS_TYPE': BUS_TYPE,
-                    'PD': str(round(PD,3)),
-                    'QD': str(round(QD,3)),
+                    'PD': str(round(PD,2)),
+                    'QD': str(round(QD,2)),
                     'GS': GS,
                     'BS': BS,
                     'AREA': BUS_AREA ,
-                    'VM': str(round(VM,3)),
+                    'VM': str(round(VM,2)),
                     'VA': VA,
                     'BASEKV': BASEKV,
                     'ZONE': ZONE,  
@@ -178,7 +176,7 @@ class tratamentoGeralArquivos:
                 ANGLE = ''
                 STATUS = ''
                 ANGMIN = '-360'
-                ANGMAX = '+360'
+                ANGMAX = '360'
 
                 F_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Barra-De']
                 T_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Barra-Para']
@@ -191,21 +189,28 @@ class tratamentoGeralArquivos:
                 TAP = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Tap']
                 ANGLE = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Angulo-Defasagem']
                 
+                # Se nao encontrou valor preenche com 0
+                try: float(TAP)
+                except: TAP = '0'
+
+                try: float(ANGLE)
+                except: ANGLE = '0'
+
                 # Tentando converter para PU 
                 try:
-                    BR_R = str(round(float(BR_R)/100),5)
-                except:
-                    pass
+                    BR_R = str(round(float(BR_R)/100,5))
+                except Exception as error:
+                    BR_R = '0'
                 
                 try:
-                    BR_X = str(round(float(BR_X)/100),5)
+                    BR_X = str(round(float(BR_X)/100,5))
                 except:
-                    pass
+                    BR_X = '0'
 
                 try:
-                    BR_B = str(round(float(BR_B)/100),5)
+                    BR_B = str(round(float(BR_B)/100,5))
                 except:
-                    pass
+                    BR_B = '0'
 
                 self.mpcBranch[linhaFromTo] = {
                     'F_BUS': F_BUS,
@@ -232,6 +237,16 @@ class tratamentoGeralArquivos:
                 QG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa']
                 QMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Maxima']
                 QMIN = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Minima']
+
+                try: QG = float(QG)
+                except: QG = 0.00
+
+                try: QMAX = float(QMAX)
+                except: QMAX = 0.00
+
+                try: QMIN = float(QMIN)
+                except: QMIN = 0.00
+
                 VG = ''
                 MBASE = 100 # 100 MVA Arbitrado mas posso pegar no BLOCO DCTE
                 GEN_STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado']
@@ -250,8 +265,8 @@ class tratamentoGeralArquivos:
                 APF = '0.00'
 
                 # Tratando estado
-                # "L" ou branco => A barra está ligada;
-                # "D" => A barra está desligada;
+                # "L" ou branco => A barra esta ligada;
+                # "D" => A barra esta desligada;
                 GEN_STATUS = '0' if GEN_STATUS == 'D' else '1'
 
                 VG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tensao'] # Preciso dividir pelo Tensao-Nominal-Grupo-Base-KV do bloco DGBT
@@ -271,9 +286,9 @@ class tratamentoGeralArquivos:
                 geracaoMinimaUsinaTermoeletrica = 0.00
                 
                 ### MPC GENCOST ####
-                custoUsinaHidraulica = 0.00
-                custoUsinaTermoeletrica = 0.00
-                CVU = 0.00
+                custoUsinaHidraulica = 0.
+                custoUsinaTermoeletrica = 0
+                CVU = 0
                 ####
 
                 ### MPC GENNAME ####
@@ -282,10 +297,12 @@ class tratamentoGeralArquivos:
 
                 NOME_USINA = ''
                 for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
+
                     two = 0
                     if(chaveNumeroBarra == GEN_BUS):
-                        
+
                         NOME_USINA = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
+                        TIPO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Mnemonico-Identificacao']
 
                         for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
                             if(usina == NOME_USINA):
@@ -294,7 +311,7 @@ class tratamentoGeralArquivos:
                                 geracaoMaximaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Maxima-MW']
                                 geracaoMinimaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Minima-MW']
                                 custoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Vagua-MWh']
-                                TIPO = 'H'
+                                # TIPO = 'H'
 
                         for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
                             if(usina == NOME_USINA):
@@ -303,56 +320,56 @@ class tratamentoGeralArquivos:
                                 geracaoMaximaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Maxima-MW']
                                 geracaoMinimaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Minima-MW']
                                 custoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Custo-Linear-MWh']
-                                TIPO = 'T'
+                                # TIPO = 'T'
 
                 # Defendendo contra erro e somando potencias na barra
                 try: geracaoUsinaHidraulica = float(geracaoUsinaHidraulica)
-                except: geracaoUsinaHidraulica == 0.00
+                except: geracaoUsinaHidraulica == 0.
 
                 try: geracaoUsinaTermoeletrica = float(geracaoUsinaTermoeletrica)
-                except: geracaoUsinaTermoeletrica == 0.00
+                except: geracaoUsinaTermoeletrica == 0
 
                 PG = geracaoUsinaHidraulica +  geracaoUsinaTermoeletrica 
 
-                # Defendendo contra erro e somando geração maxima (Potencia max) na barra
+                # Defendendo contra erro e somando geracao maxima (Potencia max) na barra
                 try: geracaoMaximaUsinaHidraulica = float(geracaoMaximaUsinaHidraulica)
-                except: geracaoMaximaUsinaHidraulica = 0.00
+                except: geracaoMaximaUsinaHidraulica = 0
 
                 try: geracaoMaximaUsinaTermoeletrica = float(geracaoMaximaUsinaTermoeletrica)
-                except: geracaoMaximaUsinaTermoeletrica = 0.00
+                except: geracaoMaximaUsinaTermoeletrica = 0
 
                 PMAX = geracaoMaximaUsinaHidraulica + geracaoMaximaUsinaTermoeletrica
 
-                # Defendendo contra erro e somando geração minima (Potencia min) na barra
+                # Defendendo contra erro e somando geracao minima (Potencia min) na barra
                 try: geracaoMinimaUsinaHidraulica = float(geracaoMinimaUsinaHidraulica)
-                except: geracaoMinimaUsinaHidraulica = 0.00
+                except: geracaoMinimaUsinaHidraulica = 0
 
                 try: geracaoMinimaUsinaTermoeletrica = float(geracaoMinimaUsinaTermoeletrica)
-                except: geracaoMinimaUsinaHidraulica = 0.00
+                except: geracaoMinimaUsinaHidraulica = 0
 
                 PMIN = geracaoMinimaUsinaHidraulica + geracaoMinimaUsinaTermoeletrica
 
                 try: custoUsinaHidraulica = float(custoUsinaHidraulica)
-                except: custoUsinaHidraulica = 0.00
+                except: custoUsinaHidraulica = 0
 
                 try: custoUsinaTermoeletrica = float(custoUsinaTermoeletrica)
 
-                except: custoUsinaTermoeletrica = 0.00
+                except: custoUsinaTermoeletrica = 0
 
                 CVU = custoUsinaHidraulica + custoUsinaTermoeletrica
 
                 # chavebarra = 'barra-10', 'barra-50'....
                 self.mpcGen[chavebarra] = {
                 'GEN_BUS': GEN_BUS,
-                'PG': PG,
-                'QG': QG,
-                'QMAX': QMAX,
-                'QMIN': QMIN,
-                'VG': VG,
+                'PG': str(round(PG,2)),
+                'QG': str(round(QG,2)),
+                'QMAX': str(round(QMAX,2)),
+                'QMIN': str(round(QMIN,2)),
+                'VG': str(round(VG,2)),
                 'MBASE': MBASE,
                 'GEN_STATUS': GEN_STATUS,
-                'PMAX': PMAX,
-                'PMIN': PMIN,
+                'PMAX': str(round(PMAX,2)),
+                'PMIN': str(round(PMIN,2)),
                 'PC1': PC1,
                 'PC2': PC2,
                 'QC1MIN': QC1MIN,
@@ -371,6 +388,7 @@ class tratamentoGeralArquivos:
                 # f.write(str(self.mpcGen[chavebarra]['GEN_BUS']) +' '+str(+self.mpcGen[chavebarra]['CVU'])+'\n' )
                 
         def montaArquivoMatPower(self):
+            doisTabEspace = '   '
 
             self.arquivoCabecalho = ''
             self.arquivoCabecalho += 'function mpc = '+self.informacoesEstagio.patamar+'\n'
@@ -385,39 +403,77 @@ class tratamentoGeralArquivos:
             self.arquivoCabecalho += 'mpc.version = \'2\';\n'
             self.arquivoCabecalho += '%\n'
             self.arquivoCabecalho += '%%-----  Power Flow Data  -----%%\n'
-            self.arquivoCabecalho += '%\n'
+            self.arquivoCabecalho += '\n'
             self.arquivoCabecalho += '%% system MVA base\n'
             self.arquivoCabecalho += 'mpc.baseMVA = 100;\n'
 
-            self.arquivoCabecalho += '%\n'
+            self.arquivoCabecalho += '\n'
             self.arquivobusData = ''
             self.arquivobusData += '%% bus data\n'
             self.arquivobusData += '%	bus_i	type	Pd	Qd	Gs	Bs	area	Vm	Va	baseKV	zone	Vmax	Vmin\n'
-            self.arquivobusData += 'mpc.bus = [\n'
+            self.arquivobusData += ('%	' + retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_i',8) +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('type',8)   +	
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pd',8)	   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qd',8)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Gs',8)	   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Bs',8)	   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('area',8)   +	
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Vm',8)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Va',8)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('baseKV',8) +	
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('zone',8)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Vmax',8)   + 
+              'Vmin' +
+            '\n')
 
+            self.arquivobusData += 'mpc.bus = [\n'
+            
             for BUS in self.mpcBus:
                 self.arquivobusData += (
-                    '    ' + str(self.mpcBus[BUS]['BUS_I']) + '       ' +
-                    str(self.mpcBus[BUS]['BUS_TYPE']) + '       ' +
-                    str(self.mpcBus[BUS]['PD']) + '   ' +
-                    str(self.mpcBus[BUS]['QD']) + '   ' +
-                    str(self.mpcBus[BUS]['GS']) + '   ' +
-                    str(self.mpcBus[BUS]['BS']) + '     ' +
-                    str(self.mpcBus[BUS]['AREA']) + '     ' +
-                    str(self.mpcBus[BUS]['VM']) + '   ' +
-                    str(self.mpcBus[BUS]['VA']) + '   ' +
-                    str(self.mpcBus[BUS]['BASEKV']) + '     ' +
-                    str(self.mpcBus[BUS]['ZONE']) + '     ' +
-                    str(self.mpcBus[BUS]['VMAX']) + '     ' +
-                    str(self.mpcBus[BUS]['VMIN']) + ';\n'
+                    doisTabEspace +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['BUS_I']),8)                   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['BUS_TYPE']),8)                +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['PD'])),8)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['QD'])),8)      +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['GS'])),8)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['BS'])),8)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['AREA']),8)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['VM']),8)                      +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['VA'])),8)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['BASEKV'])),8)   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['ZONE']),8)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['VMAX'])),8)     +
+                    corrigeNumero(str(self.mpcBus[BUS]['VMIN']))  +
+                    ';\n'
                     )
 
-            self.arquivobusData += '    ];\n'
-            self.arquivobusData += '%\n'
+            self.arquivobusData += '];\n'
 
             self.arquivoGeneratorData = ''
             self.arquivoGeneratorData += '%% generator data\n'
-            self.arquivoGeneratorData += '%	bus	Pg	Qg	Qmax	Qmin	Vg	mBase	status	Pmax	Pmin	Pc1	Pc2	Qc1min	Qc1max	Qc2min	Qc2max	ramp_agc	ramp_10	ramp_30	ramp_q	apf\n'
+            # self.arquivoGeneratorData += '%	bus	Pg	Qg	Qmax	Qmin	Vg	mBase	status	Pmax	Pmin	Pc1	Pc2	Qc1min	Qc1max	Qc2min	Qc2max	ramp_agc	ramp_10	ramp_30	ramp_q	apf\n'
+            self.arquivoGeneratorData += ('%	' + 	retornaStringArrumadaParaEscreverComTamanhoCorreto('bus',10) +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pg',10)       +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qg',10)       +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qmax',10)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qmin',10)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Vg',10)       +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('mBase',10)    +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('status',10)   +	
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pmax',10)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pmin',10)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pc1',10)      +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pc2',10)	   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qc1min',10)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qc1max',10)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qc2min',10)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qc2max',10)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('ramp_agc',10) +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('ramp_10',10)  +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('ramp_30',10)  +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('ramp_q',10)   +
+            'apf'      +
+            '\n')
             self.arquivoGeneratorData += 'mpc.gen = [\n'
             
             self.arquivoGeneratorCostData = ''
@@ -430,79 +486,109 @@ class tratamentoGeralArquivos:
 
             self.arquivoGeneratorName = ''
             self.arquivoGeneratorName += '%% generator name\n'
-            self.arquivoGeneratorName += '%	bus	tipo name\n'
+            self.arquivoGeneratorName += ('%	'+retornaStringArrumadaParaEscreverComTamanhoCorreto('bus',10) +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('tipo',10)                                      +
+            'name\n'
+            )
             self.arquivoGeneratorName += 'mpc.genname = [\n'
 
             for chavebarra in self.mpcGen:
 
                 # mpcgen
                 self.arquivoGeneratorData += (
-                    '    ' +str(self.mpcGen[chavebarra]['GEN_BUS']) + ' ' +
-                    str(self.mpcGen[chavebarra]['PG']) + ' ' +
-                    str(self.mpcGen[chavebarra]['QG']) + ' ' +
-                    str(self.mpcGen[chavebarra]['QMAX']) + ' ' +
-                    str(self.mpcGen[chavebarra]['QMIN']) + ' ' +
-                    str(self.mpcGen[chavebarra]['VG']) + ' ' +
-                    str(self.mpcGen[chavebarra]['MBASE']) + ' ' +
-                    str(self.mpcGen[chavebarra]['GEN_STATUS']) + ' ' +
-                    str(self.mpcGen[chavebarra]['PMAX']) + ' ' +
-                    str(self.mpcGen[chavebarra]['PMIN']) + ' ' +
-                    str(self.mpcGen[chavebarra]['PC1']) + ' ' +
-                    str(self.mpcGen[chavebarra]['PC2']) + ' ' +
-                    str(self.mpcGen[chavebarra]['QC1MIN']) + ' ' +
-                    str(self.mpcGen[chavebarra]['QC1MAX']) + ' ' +
-                    str(self.mpcGen[chavebarra]['QC2MIN']) + ' ' +
-                    str(self.mpcGen[chavebarra]['QC2MAX']) + ' ' +
-                    str(self.mpcGen[chavebarra]['RAMP_AGC']) + ' ' +
-                    str(self.mpcGen[chavebarra]['RAMP_10']) + ' ' +
-                    str(self.mpcGen[chavebarra]['RAMP_30']) + ' ' +
-                    str(self.mpcGen[chavebarra]['RAMP_Q']) + ' ' +
-                    str(self.mpcGen[chavebarra]['APF']) + ';\n'
+                    doisTabEspace +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),10)                   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['PG'])),10)         + 
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['QG'])),10)         +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['QMAX'])),10)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['QMIN'])),10)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['VG']),10)                        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['MBASE']),10)                     +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_STATUS']),10)                +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['PMAX'])),10)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['PMIN'])),10)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['PC1']),10)                       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['PC2']),10)                       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['QC1MIN']),10)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['QC1MAX']),10)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['QC2MIN']),10)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['QC2MAX']),10)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_AGC']),10)                  +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_10']),10)                   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_30']),10)                   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_Q']),10)                    +
+                    self.mpcGen[chavebarra]['APF']  +
+                    ';\n'
                     )
                 
                 # mpcgencost
                 self.arquivoGeneratorCostData += (
-                    '2' + ' ' +
-                    '0' + ' ' +
-                    '0' + ' ' +
-                    '2' + ' ' +
-                    str(self.mpcGen[chavebarra]['CVU']) + ' ' +
-                    '0' + ';\n'
+                    doisTabEspace + 
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto('2',10)                                 +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto('0',10)                                 +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto('0',10)                                 +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto('2',10)                                 +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['CVU']),10) + 
+                    '0' +
+                    ';\n'
                     )
                 
                 # mpcgenname
                 self.arquivoGeneratorName += (
-                    str(self.mpcGen[chavebarra]['GEN_BUS']) + ' ' +
-                    str(self.mpcGen[chavebarra]['TIPO']) + ' ' +
-                    str(self.mpcGen[chavebarra]['NOME_USINA']) + ';\n'
+                    doisTabEspace +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),10) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['TIPO']),10)    +
+                    str(self.mpcGen[chavebarra]['NOME_USINA']) +
+                    ';\n'
                     )
 
-            self.arquivoGeneratorData += '    ];\n'
+            self.arquivoGeneratorData += '];\n'
             self.arquivoGeneratorData += '%\n'
 
-            self.arquivoGeneratorCostData += '    ];\n'
+            self.arquivoGeneratorCostData += '];\n'
             self.arquivoGeneratorCostData += '%\n'
+
+            self.arquivoGeneratorName += '];\n'
+            self.arquivoGeneratorName += '%\n'
 
             self.arquivoBranchData = ''
             self.arquivoBranchData += '%% branch data\n'
-            self.arquivoBranchData += '%	fbus	tbus	r	x	b	rateA	rateB	rateC	ratio	angle	status	angmin	angmax\n'
+            # self.arquivoBranchData += '%	fbus	tbus	r	x	b	rateA	rateB	rateC	ratio	angle	status	angmin	angmax\n'
+            self.arquivoBranchData += ('%	' + 	retornaStringArrumadaParaEscreverComTamanhoCorreto('fbus',10) +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('tbus',10)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('r',10)      +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('x',10)      +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('b',10)      +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('rateA',10)  +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('rateB',10)  +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('rateC',10)  +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('ratio',10)  +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('angle',10)  +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('status',10) +	
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('angmin',10) +
+            'angmax' +	
+            '\n'
+            )
+
             self.arquivoBranchData += 'mpc.branch = [\n'
             for linhaFromTo in self.mpcBranch:
                 self.arquivoBranchData += (
-                '    ' + str(self.mpcBranch[linhaFromTo]['F_BUS']) + '         ' +
-                str(self.mpcBranch[linhaFromTo]['T_BUS']) + '         ' +
-                str(self.mpcBranch[linhaFromTo]['BR_R']) + '         ' +
-                str(self.mpcBranch[linhaFromTo]['BR_X']) + '         ' +
-                str(self.mpcBranch[linhaFromTo]['BR_B']) + '         ' +
-                str(self.mpcBranch[linhaFromTo]['RATE_A']) + '     ' +
-                str(self.mpcBranch[linhaFromTo]['RATE_B']) + '     ' +
-                str(self.mpcBranch[linhaFromTo]['RATE_C']) + '     ' +
-                str(self.mpcBranch[linhaFromTo]['RATIO']) + '     ' +
-                str(self.mpcBranch[linhaFromTo]['ANGLE']) + '     ' +
-                str(self.mpcBranch[linhaFromTo]['STATUS']) + '     ' +
-                str(self.mpcBranch[linhaFromTo]['ANGMIN']) + '     ' +
-                str(self.mpcBranch[linhaFromTo]['ANGMAX']) + ';\n'
-            )
+                doisTabEspace +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBranch[linhaFromTo]['F_BUS']),10)                 +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBranch[linhaFromTo]['T_BUS']),10)                 +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBranch[linhaFromTo]['BR_R'])),10)   +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBranch[linhaFromTo]['BR_X'])),10)   +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBranch[linhaFromTo]['BR_B'])),10)   +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBranch[linhaFromTo]['RATE_A'])),10) +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBranch[linhaFromTo]['RATE_B'])),10) +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBranch[linhaFromTo]['RATE_C'])),10) +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBranch[linhaFromTo]['RATIO'])),10)  +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBranch[linhaFromTo]['ANGLE']),10) +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBranch[linhaFromTo]['STATUS']),10) +
+                retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBranch[linhaFromTo]['ANGMIN']),10) +
+                str(self.mpcBranch[linhaFromTo]['ANGMAX']) +
+                ';\n'
+                )
             self.arquivoBranchData += '];\n'
 
         def escreveArquivoMatPower(self):
@@ -521,3 +607,34 @@ class tratamentoGeralArquivos:
                 arquivoMatPower.write(self.arquivoBranchData)
                 arquivoMatPower.write(self.arquivoGeneratorCostData)
                 arquivoMatPower.write(self.arquivoGeneratorName)
+
+# Funcao responsavel por retornar uma string com n caracteres preenchidos.
+# O Objetivo dela consiste em receber um valor, por exemplo 3.61 e concatenar espacos de modo que o resultado seja uma string que totalize a quantidade desejada (tamanhoPreenchimento) 
+# O principal objetivo dela eh formatar os espacamentos entre as colunas dos mpc do matpower.
+def retornaStringArrumadaParaEscreverComTamanhoCorreto(stringValor, tamanhoPreenchimento):
+    # Identifica o tamanho da string recebida pela funcao.
+    stringValueLen = len(stringValor)
+    # Calcula quantos espacos precisarah inserir para preencher o numero de caracteres requeridos por (tamanhoPreenchimento).
+    spaceToFill = tamanhoPreenchimento - stringValueLen
+
+    # Inicializa variavel que irah retornar apos preencher com espacamento a direita, ate atingir tamanhoPreenchimento de caracteres.
+    stringValorPreenchida = stringValor
+    for i in range (0, spaceToFill):
+        # concatena espacos a direita da string recebida na funcao
+        stringValorPreenchida += ' '
+
+    return stringValorPreenchida
+
+# Funcao responsavel por corrigir numeracao
+def corrigeNumero(stringNumero):
+    if stringNumero.startswith('.'):
+        # stringNumero = '.1' -> '0.1' 
+        stringNumero = '0' + stringNumero
+    elif stringNumero.endswith('.'):
+        # stringNumero = '1.' -> '1'
+        stringNumero = stringNumero[ : len(stringNumero)-1] # remove ultimo caracter
+    elif stringNumero.startswith('-.'):
+        # stringNumero = '-.1' -> '-0.1'
+        stringNumero = '-0' + stringNumero[1:] # substitui '-' por '-0'
+    
+    return stringNumero
