@@ -12,7 +12,7 @@ def getusinaHInformacoesDalinha(linearray):
             'Vagua-MWh': linearray[7].strip(),
             'Geracao-MW':linearray[32].strip(),
             'Geracao-Maxima-MW':linearray[33].strip(),
-            'Geracao-Minima-MW': '0.00', # Valor arbitrado, Não possui informação no arquivo
+            'Geracao-Minima-MW': '0.00', # Valor arbitrado, Nao possui informacao no arquivo
             'Capacidade-MW':linearray[34].strip(),
             'Tipo': 'H',
         }

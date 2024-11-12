@@ -63,7 +63,7 @@ def getdlinInformacoesDaLinha(line):
 def getdgltInformacoesDaLinha(line):
     try:
         dgltInfoLine = {
-            'Grupo': line[0:2].strip(), # Identificador do grupo limite de tensão no bloco DBAR
+            'Grupo': line[0:2].strip(), # Identificador do grupo limite de tensao no bloco DBAR
             'Limite-Minimo': line[3:8].strip(),
             'Limite-Maximo': line[9:14].strip(),
         }
@@ -77,7 +77,7 @@ def getdgltInformacoesDaLinha(line):
 def getdgbtInformacoesDaLinha(line):
     try:
         dgbtInfoLine = {
-            'Letra-Identificadora-Grupo-Base': line[0:2].strip(), # Identificador do grupo base de tensão no bloco DBAR
+            'Letra-Identificadora-Grupo-Base': line[0:2].strip(), # Identificador do grupo base de tensao no bloco DBAR
             'Tensao-Nominal-Grupo-Base-KV': line[3:8].strip(),
         }
     except Exception as error:
@@ -101,8 +101,6 @@ def getdusiInformacoesDaLinha(line):
             'Numero-Grupo-Pertencimento-Usina': line[76].strip(),
             'Mnemonico-Identificacao': line[77].strip(),
         }
-        # print(dusiInfoLine['Nome-Usina'])
-        # print(dusiInfoLine['Numero-Barra-Elemento-Conectado'])
     except Exception as error:
         print(error)
         return None, error
@@ -173,7 +171,7 @@ class coletaBlocosArquivoBase:
                     pass
                 
                 # Tratamento bloco DBAR
-                # Bloco contendo características das barras da rede elétrica.
+                # Bloco contendo caracteristicas das barras da rede eletrica.
                 if dbar:
                     if line.startswith('(Num)'):
                         continue
@@ -188,7 +186,7 @@ class coletaBlocosArquivoBase:
                     dbarInfoBase['barra-'+numero] = dbarInfoLine
 
                 # Tratamento bloco DLIN 
-                # Bloco contendo características dos circuitos (linhas de transmissão) da rede elétrica.
+                # Bloco contendo caracteristicas dos circuitos (linhas de transmissao) da rede eletrica.
                 if dlin:
                     if line.startswith('(De )'):
                         continue
@@ -206,7 +204,7 @@ class coletaBlocosArquivoBase:
                     dlinInfoBase['Linha-'+barraDe+'-'+barraPara] = dlinInfoLine
 
                 # Tratamento bloco DGLT
-                # Bloco contendo os grupos de limites de tensão que cada barra estah sujeita. Valores em pu, limites max e min.
+                # Bloco contendo os grupos de limites de tensao que cada barra estah sujeita. Valores em pu, limites max e min.
                 if dglt:
                     if line.startswith('(G'):
                         continue
@@ -251,7 +249,7 @@ class coletaBlocosArquivoBase:
                     dusiInfoLine, error = getdusiInformacoesDaLinha(str(line))
                     if error: sys.exit()
 
-                    #Validando o mnemonico obtido, coluna 78 referencia: Centro de Pesquisas de Energia Elétrica - CEPEL Manual do Usuario - Modelo DESSEM v. 19.0.24.3 - Marco/2022
+                    #Validando o mnemonico obtido, coluna 78 referencia: Centro de Pesquisas de Energia Eletrica - CEPEL Manual do Usuario - Modelo DESSEM v. 19.0.24.3 - Marco/2022
                     # [Se diferente de H=> hidro, T=> termo, ou E=> elevatorio nao concateno no dusiInfoBase]
                     if ((dusiInfoLine['Mnemonico-Identificacao'] != 'H') and (dusiInfoLine['Mnemonico-Identificacao'] != 'T') and (dusiInfoLine['Mnemonico-Identificacao'] != 'E')):
                         continue

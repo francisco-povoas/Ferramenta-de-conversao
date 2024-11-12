@@ -54,7 +54,8 @@ def defineEstagio(hora, minuto):
         '23:30' : '48',
         
     }
-    estagio = estagios.get(hora+':'+minuto, None)
+    timeEstagio = hora+':'+minuto
+    estagio = estagios.get(timeEstagio, None)
 
     if estagio: return estagio
     raise Exception('Nao conseguiu encontrar o estagio para a hora e minuto determinado')

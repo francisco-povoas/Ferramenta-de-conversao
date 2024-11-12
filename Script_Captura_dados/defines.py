@@ -6,7 +6,7 @@ CAMINHO = '/home/francisco/Documents/TCC2/Projeto/Ferramenta-de-conversao/'
 # Pasta com arquivos Dessem obtido ONS
 BLOCO_REVISAO = 'ds_ons_122023_rv0d29'
 
-# Arquivos para coleta do caso base, antes da mudança de patamar
+# Arquivos para coleta do caso base, antes da mudanca de patamar
 LEVE_PWF = CAMINHO+BLOCO_REVISAO+'/leve.pwf'
 MEDIA_PWF = CAMINHO+BLOCO_REVISAO+'/media.pwf'
 PESADA_PWF = CAMINHO+BLOCO_REVISAO+'/pesada.pwf'
