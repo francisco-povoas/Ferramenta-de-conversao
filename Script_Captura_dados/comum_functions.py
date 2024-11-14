@@ -3,6 +3,15 @@
 # Soh aceita fracoes de meia hora para minuto, como por exemplo minuto: '00' ou '30'
 # Soh aceita hora de 00 a 23, sendo a primeira hora 00:00 estagio 1 e ultima hora 23:00 estagio 47
 def defineEstagio(hora, minuto):
+    estagios  = retornaEstagios()
+
+    timeEstagio = hora+':'+minuto
+    estagio = estagios.get(timeEstagio, None)
+
+    if estagio: return estagio
+    raise Exception('Nao conseguiu encontrar o estagio para a hora e minuto determinado')
+
+def retornaEstagios():
     estagios = {
         '00:00' : '01',
         '00:30' : '02',
@@ -52,12 +61,12 @@ def defineEstagio(hora, minuto):
         '22:30' : '46',
         '23:00' : '47',
         '23:30' : '48',
-        
     }
-    timeEstagio = hora+':'+minuto
-    estagio = estagios.get(timeEstagio, None)
+    return estagios
 
-    if estagio: return estagio
-    raise Exception('Nao conseguiu encontrar o estagio para a hora e minuto determinado')
-
-
+# dicionario = {'1' : 'a', '2': 'b'}
+# retorno = {'a': '1', 'b': '2'}
+def retornaDicionarioInvertido(dicionario):
+    NovoDicionario = {}
+    for key, value in dicionario.items(): NovoDicionario[value] = key
+    return NovoDicionario

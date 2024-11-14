@@ -115,6 +115,7 @@ class tratamentoGeralArquivos:
                 except:
                     QD = 0
                 
+
                 if BUS_AREA in self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase']:
                     FATOR_CORRECAO_CARGA = self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase'][BUS_AREA]['Fator-Correcao']
                     if FATOR_CORRECAO_CARGA:
@@ -140,7 +141,7 @@ class tratamentoGeralArquivos:
                 if Grupo_De_Base_De_Tensao in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgbtInfoBase']:
                     BASEKV = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgbtInfoBase'][Grupo_De_Base_De_Tensao]['Tensao-Nominal-Grupo-Base-KV']
 
-                VM = (float(VM)/float(BASEKV))
+                VM = float(VM)/1000
 
                 self.mpcBus[BUS_I] = {
                     'BUS_I': BUS_I,
@@ -150,7 +151,7 @@ class tratamentoGeralArquivos:
                     'GS': GS,
                     'BS': BS,
                     'AREA': BUS_AREA ,
-                    'VM': str(round(VM,2)),
+                    'VM': str(round(VM,3)),
                     'VA': VA,
                     'BASEKV': BASEKV,
                     'ZONE': ZONE,  
@@ -188,7 +189,17 @@ class tratamentoGeralArquivos:
                 RATE_C = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Capacidade-Fluxo-Circuito-Condicoes-Emergencia']
                 TAP = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Tap']
                 ANGLE = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Angulo-Defasagem']
-                
+                STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Estado']
+
+                if not STATUS:
+                    STATUS = '1'
+                    # circuito ligado
+                    pass
+                elif STATUS == 'D':
+                    # circuito desligado
+                    STATUS = '0'
+                    pass
+
                 # Se nao encontrou valor preenche com 0
                 try: float(TAP)
                 except: TAP = '0'
@@ -250,7 +261,7 @@ class tratamentoGeralArquivos:
                 VG = ''
                 MBASE = 100 # 100 MVA Arbitrado mas posso pegar no BLOCO DCTE
                 GEN_STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado']
-                PMAX = ''
+                PMAX = '0.00'
                 PMIN = '0.00'
                 PC1 = '0.00'
                 PC2 = '0.00'
@@ -269,13 +280,13 @@ class tratamentoGeralArquivos:
                 # "D" => A barra esta desligada;
                 GEN_STATUS = '0' if GEN_STATUS == 'D' else '1'
 
-                VG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tensao'] # Preciso dividir pelo Tensao-Nominal-Grupo-Base-KV do bloco DGBT
+                VG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tensao']
                 
                 Grupo_De_Base_De_Tensao = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Grupo-De-Base-De-Tensao'] # usado apenas para pegar a tensao base no bloco dgbt
                 if Grupo_De_Base_De_Tensao in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgbtInfoBase']:
                     BASEKV = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgbtInfoBase'][Grupo_De_Base_De_Tensao]['Tensao-Nominal-Grupo-Base-KV']
 
-                VG = (float(VG)/float(BASEKV))
+                VG = float(VG)/1000
 
                 # declarando antes do laco for as variaveis de geracao caso nao entre no if que elas sao usadas
                 geracaoUsinaHidraulica = 0.00
@@ -298,29 +309,29 @@ class tratamentoGeralArquivos:
                 NOME_USINA = ''
                 for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
 
-                    two = 0
                     if(chaveNumeroBarra == GEN_BUS):
 
                         NOME_USINA = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
                         TIPO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Mnemonico-Identificacao']
-
-                        for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
-                            if(usina == NOME_USINA):
-                                two += 1
-                                geracaoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-MW']
-                                geracaoMaximaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Maxima-MW']
-                                geracaoMinimaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Minima-MW']
-                                custoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Vagua-MWh']
-                                # TIPO = 'H'
-
-                        for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
-                            if(usina == NOME_USINA):
-                                two += 1
-                                geracaoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-MW']
-                                geracaoMaximaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Maxima-MW']
-                                geracaoMinimaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Minima-MW']
-                                custoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Custo-Linear-MWh']
-                                # TIPO = 'T'
+                        # Nao somar H com T. dependendo do tipo entra num dos blocos abaixo...
+                        # Foi verificado para alguns casos e notado que nao ha conexao entre usinas H e T numa mesma barra.
+                        # Se no futuro alguem avistar a necessidade de somar injecoes de T e H para mesma barra o codigo eh facilmente alteravel.
+                        if TIPO == 'H':
+                            for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
+                                if(usina == NOME_USINA):
+                                    geracaoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-MW']
+                                    geracaoMaximaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Maxima-MW']
+                                    geracaoMinimaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Minima-MW']
+                                    custoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Vagua-MWh']
+                                    # TIPO = 'H'
+                        if TIPO == 'T':
+                            for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
+                                if(usina == NOME_USINA):
+                                    geracaoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-MW']
+                                    geracaoMaximaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Maxima-MW']
+                                    geracaoMinimaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Minima-MW']
+                                    custoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Custo-Linear-MWh']
+                                    # TIPO = 'T'
 
                 # Defendendo contra erro e somando potencias na barra
                 try: geracaoUsinaHidraulica = float(geracaoUsinaHidraulica)
@@ -329,6 +340,7 @@ class tratamentoGeralArquivos:
                 try: geracaoUsinaTermoeletrica = float(geracaoUsinaTermoeletrica)
                 except: geracaoUsinaTermoeletrica == 0
 
+                # na realidade nao esta somando, so estou pegando de um ou de outro dependendo do valor de TIPO
                 PG = geracaoUsinaHidraulica +  geracaoUsinaTermoeletrica 
 
                 # Defendendo contra erro e somando geracao maxima (Potencia max) na barra
@@ -338,6 +350,7 @@ class tratamentoGeralArquivos:
                 try: geracaoMaximaUsinaTermoeletrica = float(geracaoMaximaUsinaTermoeletrica)
                 except: geracaoMaximaUsinaTermoeletrica = 0
 
+                # na realidade nao esta somando, so estou pegando de um ou de outro dependendo do valor de TIPO
                 PMAX = geracaoMaximaUsinaHidraulica + geracaoMaximaUsinaTermoeletrica
 
                 # Defendendo contra erro e somando geracao minima (Potencia min) na barra
@@ -347,6 +360,7 @@ class tratamentoGeralArquivos:
                 try: geracaoMinimaUsinaTermoeletrica = float(geracaoMinimaUsinaTermoeletrica)
                 except: geracaoMinimaUsinaHidraulica = 0
 
+                # na realidade nao esta somando, so estou pegando de um ou de outro dependendo do valor de TIPO
                 PMIN = geracaoMinimaUsinaHidraulica + geracaoMinimaUsinaTermoeletrica
 
                 try: custoUsinaHidraulica = float(custoUsinaHidraulica)
@@ -356,6 +370,7 @@ class tratamentoGeralArquivos:
 
                 except: custoUsinaTermoeletrica = 0
 
+                # na realidade nao esta somando, so estou pegando de um ou de outro dependendo do valor de TIPO
                 CVU = custoUsinaHidraulica + custoUsinaTermoeletrica
 
                 # chavebarra = 'barra-10', 'barra-50'....
@@ -365,7 +380,7 @@ class tratamentoGeralArquivos:
                 'QG': str(round(QG,2)),
                 'QMAX': str(round(QMAX,2)),
                 'QMIN': str(round(QMIN,2)),
-                'VG': str(round(VG,2)),
+                'VG': str(round(VG,3)),
                 'MBASE': MBASE,
                 'GEN_STATUS': GEN_STATUS,
                 'PMAX': str(round(PMAX,2)),
@@ -385,7 +400,6 @@ class tratamentoGeralArquivos:
                 'TIPO': TIPO, # Usado no mpc genname
                 'NOME_USINA': NOME_USINA,
                 }
-                # f.write(str(self.mpcGen[chavebarra]['GEN_BUS']) +' '+str(+self.mpcGen[chavebarra]['CVU'])+'\n' )
                 
         def montaArquivoMatPower(self):
             doisTabEspace = '   '
@@ -410,7 +424,6 @@ class tratamentoGeralArquivos:
             self.arquivoCabecalho += '\n'
             self.arquivobusData = ''
             self.arquivobusData += '%% bus data\n'
-            self.arquivobusData += '%	bus_i	type	Pd	Qd	Gs	Bs	area	Vm	Va	baseKV	zone	Vmax	Vmin\n'
             self.arquivobusData += ('%	' + retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_i',8) +
             retornaStringArrumadaParaEscreverComTamanhoCorreto('type',8)   +	
             retornaStringArrumadaParaEscreverComTamanhoCorreto('Pd',8)	   +

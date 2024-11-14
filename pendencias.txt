@@ -1,18 +1,5 @@
-1 ) Arrumar espaçamento te todo arquivo de saída .m
-2 ) Arrumar bloco generator name:
-    - Tem gerador sem tipo, Ex: barra 12 L.C.BARRETO Verificar motivo...
-4) Veriricar se posso ter hidrica e termica na mesma barra (Aparenta nao ter, two usado pra debugar no código) Se não for possivel nao adianta somar capacidades ou potencia gerada...
-5 ) matpower tem tipo 4 pra barra isolada, porem o dessem nao trouxe nada diferente de 0 1 e 2...
-6 ) Inserir no cabecalho do arquivo gerado informacoes dos arquivos que os dados foram extraidos. arquivo, patamar etc.
-7) Padronizar variaveis em ingles ou portugues. Usar dois padroes eh incorreto.
-8) tem alguma coisa errada com VMAX, talvez tenha que passar pra pu.
-10) Nos dados de generator data Pg esta acima de pmax... averiguar. (perguntar para o professor se isso eh um problema.)
-11) em dados de branch r e x sao 5 casas decimais e ratio sao 4. Dados em branco precisam receber 0 
-12) alterar de 0.00 para apenas 0
-13) meus vg de mpc gen estao muito acima de 1... verificar
-14) o que preencher em status do branch caso vazio?
-15) vm e va de bus deveria respeitar vmax e vmin?
-16) serah que minhas conversoes em pu estao corretas? so dividir por 100 mesmo? meu b do branch parece estar alto
-17) muito zero em gencost, dar uma olhada.
-18) parece que muita barra nao tem termica nem hidraulica nem elevatoria...
-19) considerar elevatoria?
+1 ) Inserir no cabecalho do arquivo gerado informacoes dos arquivos que os dados foram extraidos. arquivo, patamar etc.
+2) Padronizar variaveis em ingles ou portugues. Usar dois padroes eh incorreto.
+3) alterar de 0.00 para apenas 0
+4) considerar elevatoria?
+5) Adicionar readme, como rodar e como configurar pasta dos arquivos para leitura dos dados.

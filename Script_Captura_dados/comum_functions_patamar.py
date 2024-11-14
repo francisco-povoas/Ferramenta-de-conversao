@@ -41,7 +41,7 @@ class coletaBlocosArquivosPatamar:
                     pass
                 
                 # Tratamento bloco DANC MUDA
-                # Bloco contendo fatores de correcao para aplicacao as cargas das barra, permitindo que se diferencie as cargas para os periodes relacionados a um mesmo caso-base.
+                # Bloco contendo fatores de correcao para aplicacao as cargas das barra, permitindo que se diferencie as cargas para os periodos relacionados a um mesmo caso-base.
                 if danc:
                     if line.startswith('99999'): # Terminou Bloco DANC MUDA
                         danc = False
