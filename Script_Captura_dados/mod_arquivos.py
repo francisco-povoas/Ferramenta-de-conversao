@@ -404,8 +404,18 @@ class tratamentoGeralArquivos:
         def montaArquivoMatPower(self):
             doisTabEspace = '   '
 
+            # /home/francisco/Documents/TCC2/Projeto/Ferramenta-de-conversao/Resultados_Ferramenta_Computacional_ds_ons_122023_rv0d29/ds_ons_122023_rv0d29_Estagio01.m
+            caminhoCompletoArquivo = DIRETORIO_COM_RESULTADOS_DE_SAIDA + BLOCO_REVISAO+'_'+self.informacoesEstagio.patamar.split('.')[0]+'.m'
+
+            # ds_ons_122023_rv0d29_Estagio01.m
+            nomeArquivoSaidaComExtensao = caminhoCompletoArquivo.split('/')[-1]
+
+            # ds_ons_122023_rv0d29_Estagio01
+            nomeArquivoSaidaSemExtensao = nomeArquivoSaidaComExtensao.replace('.m', '')
+
             self.arquivoCabecalho = ''
-            self.arquivoCabecalho += 'function mpc = '+self.informacoesEstagio.patamar+'\n'
+            self.arquivoCabecalho += 'function mpc = '+nomeArquivoSaidaSemExtensao+'\n'
+
             self.arquivoCabecalho += '% CASO SIN: extraido dos arquivos de dados do DESSEM\n'
             self.arquivoCabecalho += '%\n'
             self.arquivoCabecalho += '% CASO SIN: Fluxo de Potencia do SIN extraido de arquivo de dados do DESSEM\n'
@@ -609,10 +619,10 @@ class tratamentoGeralArquivos:
             # Se nao existe diretorio para escrever os resultado entao cria
             if not os.path.isdir(DIRETORIO_COM_RESULTADOS_DE_SAIDA): os.makedirs(DIRETORIO_COM_RESULTADOS_DE_SAIDA)
 
-            # /home/francisco/Documents/TCC2/Projeto/Ferramenta-de-conversao/Resultados_Ferramenta_Computacional_ds_ons_122023_rv0d29/ds_ons_122023_rv0d29_pat01.m
-            # ds_ons_122023_rv0d29+'_'+'pat01'+'.m'
-            # 'ds_ons_122023_rv0d29_pat01.m'
-            with open(DIRETORIO_COM_RESULTADOS_DE_SAIDA+BLOCO_REVISAO+'_'+self.informacoesEstagio.patamar.split('.')[0]+'.m', 'w') as arquivoMatPower :
+            # /home/francisco/Documents/TCC2/Projeto/Ferramenta-de-conversao/Resultados_Ferramenta_Computacional_ds_ons_122023_rv0d29/ds_ons_122023_rv0d29_Estagio01.m
+            caminhoCompletoArquivo = DIRETORIO_COM_RESULTADOS_DE_SAIDA + BLOCO_REVISAO+'_'+self.informacoesEstagio.patamar.split('.')[0]+'.m'
+
+            with open(caminhoCompletoArquivo, 'w') as arquivoMatPower :
 
                 arquivoMatPower.write(self.arquivoCabecalho)
                 arquivoMatPower.write(self.arquivobusData)
