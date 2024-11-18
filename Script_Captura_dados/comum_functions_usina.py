@@ -7,6 +7,7 @@ def getusinaHInformacoesDalinha(linearray):
         hidroInfoLine = {
             'Estagio': linearray[0].strip(),
             'Patamar': linearray[1].strip(),
+            'Numero-Cadastro-Usina': linearray[2].strip(),
             'Usina': linearray[3].strip(),
             'Sistema': linearray[4].strip(),
             'Vagua-MWh': linearray[7].strip(),
@@ -28,6 +29,7 @@ def getusinaTInformacoesDalinha(linearray):
         termoInfoLine = {
             'Estagio': linearray[0].strip(),
             'Patamar': linearray[1].strip(),
+            'Numero-Cadastro-Usina': linearray[2].strip(),
             'Usina': linearray[3].strip(),
             'Sistema': linearray[5].strip(),
             'Geracao-MW':linearray[6].strip(),

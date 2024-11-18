@@ -244,7 +244,8 @@ class tratamentoGeralArquivos:
             for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
 
                 GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
-                PG = ''
+                # print('GEN_BUS = '+ GEN_BUS + ' TYPE = '+ str(type(GEN_BUS)))
+                PG = 0.00
                 QG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa']
                 QMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Maxima']
                 QMIN = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Minima']
@@ -261,19 +262,19 @@ class tratamentoGeralArquivos:
                 VG = ''
                 MBASE = 100 # 100 MVA Arbitrado mas posso pegar no BLOCO DCTE
                 GEN_STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado']
-                PMAX = '0.00'
-                PMIN = '0.00'
-                PC1 = '0.00'
-                PC2 = '0.00'
-                QC1MIN = '0.00'
-                QC1MAX = '0.00'
-                QC2MIN = '0.00'
-                QC2MAX = '0.00'
-                RAMP_AGC = '0.00'
-                RAMP_10 = '0.00'
-                RAMP_30 = '0.00'
-                RAMP_Q = '0.00'
-                APF = '0.00'
+                PMAX = 0.00
+                PMIN = 0.00
+                PC1 = 0.00
+                PC2 = 0.00
+                QC1MIN = 0.00
+                QC1MAX = 0.00
+                QC2MIN = 0.00
+                QC2MAX = 0.00
+                RAMP_AGC = 0.00
+                RAMP_10 = 0.00
+                RAMP_30 = 0.00
+                RAMP_Q = 0.00
+                APF = 0.00
 
                 # Tratando estado
                 # "L" ou branco => A barra esta ligada;
@@ -297,81 +298,83 @@ class tratamentoGeralArquivos:
                 geracaoMinimaUsinaTermoeletrica = 0.00
                 
                 ### MPC GENCOST ####
-                custoUsinaHidraulica = 0.
-                custoUsinaTermoeletrica = 0
-                CVU = 0
+                custoUsinaHidraulica = 0.00
+                custoUsinaTermoeletrica = 0.00
+                CVU = 0.00
                 ####
 
                 ### MPC GENNAME ####
                 TIPO = ''
                 ####
-
-                NOME_USINA = ''
+                NOME_USINA_CORRETO = ''
+                # print(self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'])
                 for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
 
                     if(chaveNumeroBarra == GEN_BUS):
-
-                        NOME_USINA = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
+                        
+                        # Nome incorreto. precisa ser alterado para o que esta contido dentro de pdo_term e pdo_hidr.
+                        # Elevatoria nao vai atualizar, ja que nao trato tipo E... pegarah valores padroes 0.00
+                        NOME_USINA_CORRETO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
+                        
+                        # TIPO OK
                         TIPO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Mnemonico-Identificacao']
+                        
+                        numeroCadastroUsina = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Numero-Cadastro-Usina']
+                        
                         # Nao somar H com T. dependendo do tipo entra num dos blocos abaixo...
-                        # Foi verificado para alguns casos e notado que nao ha conexao entre usinas H e T numa mesma barra.
-                        # Se no futuro alguem avistar a necessidade de somar injecoes de T e H para mesma barra o codigo eh facilmente alteravel.
+                        # No momento verificado que nao ha injecao na mesma barra proveniente de T e H, no futuro pode mudar...
                         if TIPO == 'H':
                             for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
-                                if(usina == NOME_USINA):
+                                if numeroCadastroUsina == self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Numero-Cadastro-Usina']:
                                     geracaoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-MW']
                                     geracaoMaximaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Maxima-MW']
                                     geracaoMinimaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Minima-MW']
                                     custoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Vagua-MWh']
-                                    # TIPO = 'H'
-                        if TIPO == 'T':
+                                    # print('TIPO = '+ TIPO+' NOME_USINA = '+ NOME_USINA_DUSI + '; USINA = '+ self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Usina'] + ' CVU = '+ custoUsinaHidraulica)
+                                    NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Usina']
+                                    try: geracaoUsinaHidraulica = float(geracaoUsinaHidraulica)
+                                    except: geracaoUsinaHidraulica == 0.0
+
+                                    try: geracaoMaximaUsinaHidraulica = float(geracaoMaximaUsinaHidraulica)
+                                    except: geracaoMaximaUsinaHidraulica = 0.0
+
+                                    try: geracaoMinimaUsinaHidraulica = float(geracaoMinimaUsinaHidraulica)
+                                    except: geracaoMinimaUsinaHidraulica = 0.0
+
+                                    try: custoUsinaHidraulica = float(custoUsinaHidraulica)
+                                    except: custoUsinaHidraulica = 0.0
+
+                                    PG = geracaoUsinaHidraulica
+                                    PMAX = geracaoMaximaUsinaHidraulica
+                                    PMIN = geracaoMinimaUsinaHidraulica
+                                    CVU = custoUsinaHidraulica
+                        elif TIPO == 'T':
                             for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
-                                if(usina == NOME_USINA):
+                                if numeroCadastroUsina == self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Numero-Cadastro-Usina']:
                                     geracaoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-MW']
                                     geracaoMaximaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Maxima-MW']
                                     geracaoMinimaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Minima-MW']
                                     custoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Custo-Linear-MWh']
-                                    # TIPO = 'T'
+                                    # print('TIPO = '+ TIPO+' NOME_USINA = '+ NOME_USINA_DUSI + '; USINA = '+ self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Usina']+ ' CVU = '+ custoUsinaTermoeletrica)
+                                    NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Usina']
+                                    try: geracaoUsinaTermoeletrica = float(geracaoUsinaTermoeletrica)
+                                    except: geracaoUsinaTermoeletrica == 0.0
+                                    
+                                    try: geracaoMaximaUsinaTermoeletrica = float(geracaoMaximaUsinaTermoeletrica)
+                                    except: geracaoMaximaUsinaTermoeletrica = 0.0
 
-                # Defendendo contra erro e somando potencias na barra
-                try: geracaoUsinaHidraulica = float(geracaoUsinaHidraulica)
-                except: geracaoUsinaHidraulica == 0.
+                                    try: geracaoMinimaUsinaTermoeletrica = float(geracaoMinimaUsinaTermoeletrica)
+                                    except: geracaoMinimaUsinaHidraulica = 0.0
 
-                try: geracaoUsinaTermoeletrica = float(geracaoUsinaTermoeletrica)
-                except: geracaoUsinaTermoeletrica == 0
+                                    try: custoUsinaTermoeletrica = float(custoUsinaTermoeletrica)
+                                    except: custoUsinaTermoeletrica = 0.0
 
-                # na realidade nao esta somando, so estou pegando de um ou de outro dependendo do valor de TIPO
-                PG = geracaoUsinaHidraulica +  geracaoUsinaTermoeletrica 
-
-                # Defendendo contra erro e somando geracao maxima (Potencia max) na barra
-                try: geracaoMaximaUsinaHidraulica = float(geracaoMaximaUsinaHidraulica)
-                except: geracaoMaximaUsinaHidraulica = 0
-
-                try: geracaoMaximaUsinaTermoeletrica = float(geracaoMaximaUsinaTermoeletrica)
-                except: geracaoMaximaUsinaTermoeletrica = 0
-
-                # na realidade nao esta somando, so estou pegando de um ou de outro dependendo do valor de TIPO
-                PMAX = geracaoMaximaUsinaHidraulica + geracaoMaximaUsinaTermoeletrica
-
-                # Defendendo contra erro e somando geracao minima (Potencia min) na barra
-                try: geracaoMinimaUsinaHidraulica = float(geracaoMinimaUsinaHidraulica)
-                except: geracaoMinimaUsinaHidraulica = 0
-
-                try: geracaoMinimaUsinaTermoeletrica = float(geracaoMinimaUsinaTermoeletrica)
-                except: geracaoMinimaUsinaHidraulica = 0
-
-                # na realidade nao esta somando, so estou pegando de um ou de outro dependendo do valor de TIPO
-                PMIN = geracaoMinimaUsinaHidraulica + geracaoMinimaUsinaTermoeletrica
-
-                try: custoUsinaHidraulica = float(custoUsinaHidraulica)
-                except: custoUsinaHidraulica = 0
-
-                try: custoUsinaTermoeletrica = float(custoUsinaTermoeletrica)
-
-                except: custoUsinaTermoeletrica = 0
-
-                # na realidade nao esta somando, so estou pegando de um ou de outro dependendo do valor de TIPO
-                CVU = custoUsinaHidraulica + custoUsinaTermoeletrica
+                                    PG = geracaoUsinaTermoeletrica
+                                    PMAX = geracaoMaximaUsinaTermoeletrica
+                                    PMIN = geracaoMinimaUsinaTermoeletrica
+                                    CVU = custoUsinaTermoeletrica
+                        else:
+                            pass
 
                 # chavebarra = 'barra-10', 'barra-50'....
                 self.mpcGen[chavebarra] = {
@@ -398,7 +401,7 @@ class tratamentoGeralArquivos:
                 'APF': APF,
                 'CVU': CVU, # Usado no mpc gencost
                 'TIPO': TIPO, # Usado no mpc genname
-                'NOME_USINA': NOME_USINA,
+                'NOME_USINA': NOME_USINA_CORRETO,
                 }
                 
         def montaArquivoMatPower(self):
