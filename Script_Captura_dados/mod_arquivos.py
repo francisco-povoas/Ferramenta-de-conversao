@@ -135,7 +135,10 @@ class tratamentoGeralArquivos:
                 if Grupo_Limite_De_Tensao in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgltInfoBase']:
                     VMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgltInfoBase'][Grupo_Limite_De_Tensao]['Limite-Maximo']
                     VMIN = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgltInfoBase'][Grupo_Limite_De_Tensao]['Limite-Minimo']
-
+                else:
+                    # Para barras sem grupo relacionados no dglt eu seto valores fixos.
+                    VMAX = '1.05'
+                    VMIN = '0.95'
 
                 Grupo_De_Base_De_Tensao = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Grupo-De-Base-De-Tensao'] # usado apenas para pegar a tensao base no bloco dgbt
                 if Grupo_De_Base_De_Tensao in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgbtInfoBase']:
@@ -543,7 +546,7 @@ class tratamentoGeralArquivos:
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_10']),10)                   +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_30']),10)                   +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_Q']),10)                    +
-                    self.mpcGen[chavebarra]['APF']  +
+                    str(self.mpcGen[chavebarra]['APF'])  +
                     ';\n'
                     )
                 
