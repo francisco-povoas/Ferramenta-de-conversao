@@ -139,9 +139,10 @@ class tratamentoGeralArquivos:
                     VMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgltInfoBase'][Grupo_Limite_De_Tensao]['Limite-Maximo']
                     VMIN = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgltInfoBase'][Grupo_Limite_De_Tensao]['Limite-Minimo']
                 else:
-                    # Para barras sem grupo relacionados no dglt eu seto valores fixos.
-                    VMAX = '1.05'
-                    VMIN = '0.95'
+                    # Para barras sem grupo relacionados no dglt eu seto valores fixos default conforme manual ANAREDE v10.
+                    # Formato dos Dados dos Grupos de Limites de Tensão
+                    VMAX = '1.2'
+                    VMIN = '0.8'
 
                 Grupo_De_Base_De_Tensao = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Grupo-De-Base-De-Tensao'] # usado apenas para pegar a tensao base no bloco dgbt
                 if Grupo_De_Base_De_Tensao in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgbtInfoBase']:
