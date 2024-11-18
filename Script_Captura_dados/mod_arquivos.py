@@ -3,6 +3,7 @@ from comum_functions import defineEstagio
 from comum_functions_base import *
 from comum_functions_patamar import *
 from comum_functions_usina import *
+from comum_functions_cmo import *
 from defines import *
 import os
 
@@ -62,6 +63,8 @@ class tratamentoGeralArquivos:
             self.informacoesBlocosArquivoPatamar = coletaBlocosArquivosPatamar(self.arquivoPatamar)
 
             self.informacoesArquivosUsinas = coletaDadosUsinas(USINA_HIDRAULICA, USINA_TERMOELETRICA, self.estagio)
+
+            self.informacoesCmoBarras = coletaDadosCmoBarras(CMO_BARRAS, self.estagio)
             
             self.montandoEstruturaMpcBus()
             self.montandoEstruturaMpcBranch()
@@ -245,9 +248,24 @@ class tratamentoGeralArquivos:
         def montandoEstruturaMpcGen(self):
             self.mpcGen = {}
             for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
-
+                BUS_NAME = ''
+                BUS_SUBS = ''
+                BUS_CMO = ''
+                
                 GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
                 # print('GEN_BUS = '+ GEN_BUS + ' TYPE = '+ str(type(GEN_BUS)))
+                
+                if GEN_BUS in self.informacoesCmoBarras.infoCmo:
+                    if 'Nome-Barra' in self.informacoesCmoBarras.infoCmo[GEN_BUS] and \
+                       'Subsistema' in self.informacoesCmoBarras.infoCmo[GEN_BUS] and \
+                       'Custo-Marginal' in self.informacoesCmoBarras.infoCmo[GEN_BUS]:
+                        BUS_NAME = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Nome-Barra']
+                        BUS_SUBS = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Subsistema']
+                        BUS_CMO = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Custo-Marginal']
+                
+                try: float(BUS_CMO)
+                except: BUS_CMO = 0.00
+                
                 PG = 0.00
                 QG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa']
                 QMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Maxima']
@@ -403,8 +421,11 @@ class tratamentoGeralArquivos:
                 'RAMP_Q': RAMP_Q,
                 'APF': APF,
                 'CVU': CVU, # Usado no mpc gencost
-                'TIPO': TIPO, # Usado no mpc genname
-                'NOME_USINA': NOME_USINA_CORRETO,
+                'TIPO': TIPO, # Usado no mpc additional data
+                'NOME_USINA': NOME_USINA_CORRETO, # Usado no mpc additional data
+                'BUS_NAME': BUS_NAME, # Usado no mpc additional data
+                'BUS_SUBS': BUS_SUBS, # Usado no mpc additional data
+                'BUS_CMO': BUS_CMO, # Usado no mpc additional data
                 }
                 
         def montaArquivoMatPower(self):
@@ -513,13 +534,16 @@ class tratamentoGeralArquivos:
             self.arquivoGeneratorCostData += 'mpc.gencost = [\n'
 
 
-            self.arquivoGeneratorName = ''
-            self.arquivoGeneratorName += '%% generator name\n'
-            self.arquivoGeneratorName += ('%	'+retornaStringArrumadaParaEscreverComTamanhoCorreto('bus',10) +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('tipo',10)                                      +
-            'name\n'
+            self.arquivoAdditionalData = ''
+            self.arquivoAdditionalData += '%% bus additional data\n'
+            self.arquivoAdditionalData += ('%	'+retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_i',14)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_name',14)                                      + # pegar do CMO
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_subs',14)                                      + # pegar do CMO
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_cmo',14)                                       + # pegar do CMO
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_type',14)                                      +
+            'gen_name\n'
             )
-            self.arquivoGeneratorName += 'mpc.genname = [\n'
+            self.arquivoAdditionalData += 'mpc.busadd = [\n'
 
             for chavebarra in self.mpcGen:
 
@@ -562,11 +586,14 @@ class tratamentoGeralArquivos:
                     ';\n'
                     )
                 
-                # mpcgenname
-                self.arquivoGeneratorName += (
+                # mpcbusadd
+                self.arquivoAdditionalData += (
                     doisTabEspace +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),10) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['TIPO']),10)    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),14) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_NAME']),14) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_SUBS']),14) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_CMO']),14) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['TIPO']),14)    +
                     str(self.mpcGen[chavebarra]['NOME_USINA']) +
                     ';\n'
                     )
@@ -577,8 +604,8 @@ class tratamentoGeralArquivos:
             self.arquivoGeneratorCostData += '];\n'
             self.arquivoGeneratorCostData += '%\n'
 
-            self.arquivoGeneratorName += '];\n'
-            self.arquivoGeneratorName += '%\n'
+            self.arquivoAdditionalData += '];\n'
+            self.arquivoAdditionalData += '%\n'
 
             self.arquivoBranchData = ''
             self.arquivoBranchData += '%% branch data\n'
@@ -635,7 +662,7 @@ class tratamentoGeralArquivos:
                 arquivoMatPower.write(self.arquivoGeneratorData)
                 arquivoMatPower.write(self.arquivoBranchData)
                 arquivoMatPower.write(self.arquivoGeneratorCostData)
-                arquivoMatPower.write(self.arquivoGeneratorName)
+                arquivoMatPower.write(self.arquivoAdditionalData)
 
 # Funcao responsavel por retornar uma string com n caracteres preenchidos.
 # O Objetivo dela consiste em receber um valor, por exemplo 3.61 e concatenar espacos de modo que o resultado seja uma string que totalize a quantidade desejada (tamanhoPreenchimento) 

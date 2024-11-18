@@ -15,6 +15,8 @@ PESADA_PWF = CAMINHO+BLOCO_REVISAO+'/pesada.pwf'
 USINA_HIDRAULICA = CAMINHO+BLOCO_REVISAO+'/pdo_hidr.dat'
 USINA_TERMOELETRICA = CAMINHO+BLOCO_REVISAO+'/pdo_term.dat'
 
+########## Arquivo de CMO barras #############
+CMO_BARRAS = CAMINHO+BLOCO_REVISAO+'/pdo_cmobar.dat'
 
 # Arquivo responsavel por informar o arquivo de caso base de acordo com o estagio requirido
 DESSELET_DAT = CAMINHO+BLOCO_REVISAO+'/desselet.dat'
