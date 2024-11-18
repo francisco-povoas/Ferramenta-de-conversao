@@ -263,7 +263,15 @@ class tratamentoGeralArquivos:
                         BUS_NAME = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Nome-Barra']
                         BUS_SUBS = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Subsistema']
                         BUS_CMO = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Custo-Marginal']
-                
+                    else:
+                        BUS_NAME = '-'
+                        BUS_SUBS = '-'
+                        BUS_CMO = 0.00
+                else:
+                        BUS_NAME = '-'
+                        BUS_SUBS = '-'
+                        BUS_CMO = 0.00
+
                 try: float(BUS_CMO)
                 except: BUS_CMO = 0.00
                 
@@ -326,9 +334,9 @@ class tratamentoGeralArquivos:
                 ####
 
                 ### MPC GENNAME ####
-                TIPO = ''
+                TIPO = '-'
                 ####
-                NOME_USINA_CORRETO = ''
+                NOME_USINA_CORRETO = '-'
                 # print(self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'])
                 for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
 
@@ -396,6 +404,8 @@ class tratamentoGeralArquivos:
                                     PMIN = geracaoMinimaUsinaTermoeletrica
                                     CVU = custoUsinaTermoeletrica
                         else:
+                            # Aqui pode conter E pego no bloco dusi (elevatoria) preencherei com '-' e nao considerarei pontecias...
+                            TIPO = '-'
                             pass
 
                 # chavebarra = 'barra-10', 'barra-50'....
@@ -544,7 +554,7 @@ class tratamentoGeralArquivos:
             retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_type',14)                                      +
             'gen_name\n'
             )
-            self.arquivoAdditionalData += 'mpc.busadd = [\n'
+            self.arquivoAdditionalData += 'mpc.busadd = {\n'
 
             for chavebarra in self.mpcGen:
 
@@ -590,12 +600,12 @@ class tratamentoGeralArquivos:
                 # mpcbusadd
                 self.arquivoAdditionalData += (
                     doisTabEspace +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),14) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_NAME']),14) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_SUBS']),14) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_CMO']),14) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['TIPO']),14)    +
-                    str(self.mpcGen[chavebarra]['NOME_USINA']) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),14)        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['BUS_NAME'])),14) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['BUS_SUBS'])),14) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_CMO']),14)        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['TIPO'])),14)     +
+                    repr(str(self.mpcGen[chavebarra]['NOME_USINA']))                                                      +
                     ';\n'
                     )
 
@@ -605,7 +615,7 @@ class tratamentoGeralArquivos:
             self.arquivoGeneratorCostData += '];\n'
             self.arquivoGeneratorCostData += '%\n'
 
-            self.arquivoAdditionalData += '];\n'
+            self.arquivoAdditionalData += '};\n'
             self.arquivoAdditionalData += '%\n'
 
             self.arquivoBranchData = ''
