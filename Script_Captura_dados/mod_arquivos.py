@@ -547,11 +547,11 @@ class tratamentoGeralArquivos:
 
             self.arquivoAdditionalData = ''
             self.arquivoAdditionalData += '%% bus additional data\n'
-            self.arquivoAdditionalData += ('%	'+retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_i',14)   +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_name',14)                                      + # pegar do CMO
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_subs',14)                                      + # pegar do CMO
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_cmo',14)                                       + # pegar do CMO
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_type',14)                                      +
+            self.arquivoAdditionalData += ('%	'+retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_i',16)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_name',16)                                      + # pegar do CMO
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_subs',16)                                      + # pegar do CMO
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_cmo',16)                                       + # pegar do CMO
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_type',16)                                      +
             'gen_name\n'
             )
             self.arquivoAdditionalData += 'mpc.busadd = {\n'
@@ -600,11 +600,11 @@ class tratamentoGeralArquivos:
                 # mpcbusadd
                 self.arquivoAdditionalData += (
                     doisTabEspace +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),14)        +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['BUS_NAME'])),14) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['BUS_SUBS'])),14) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_CMO']),14)        +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['TIPO'])),14)     +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),16)        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['BUS_NAME'])),16) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['BUS_SUBS'])),16) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_CMO']),16)        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['TIPO'])),16)     +
                     repr(str(self.mpcGen[chavebarra]['NOME_USINA']))                                                      +
                     ';\n'
                     )
