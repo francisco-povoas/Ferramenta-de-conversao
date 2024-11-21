@@ -178,7 +178,8 @@ class coletaBlocosArquivoBase:
                     if line.startswith('99999'): # Terminou Bloco DBAR
                         dbar = False
                         continue
-
+                    
+                    # Ex dbarInfoLine = {'Numero': '10', 'Operacao': '', 'Estado': 'L', 'Tipo': '1', 'Grupo-De-Base-De-Tensao': 'V', 'Nome': 'ANGRA1UNE000', 'Grupo-Limite-De-Tensao': '5', 'Tensao': '976', 'Angulo': '105.', 'Geracao-Ativa': '', 'Geracao-Reativa': '795.4', 'Geracao-Reativa-Minima': '0.', 'Geracao-Reativa-Maxima': '0.', 'Barra-Controlada': '', 'Carga-Ativa': '32.', 'Carga-Reativa': '15.5', 'Capacitor-Reator': '', 'Area': '221', 'Numero-Submercado': '1'}
                     dbarInfoLine, error = getdbarInformacoesDaLinha(str(line))
                     if error: sys.exit()
                     
@@ -250,8 +251,9 @@ class coletaBlocosArquivoBase:
                     if error: sys.exit()
 
                     #Validando o mnemonico obtido, coluna 78 referencia: Centro de Pesquisas de Energia Eletrica - CEPEL Manual do Usuario - Modelo DESSEM v. 19.0.24.3 - Marco/2022
-                    # [Se diferente de H=> hidro, T=> termo, ou E=> elevatorio nao concateno no dusiInfoBase]
-                    if ((dusiInfoLine['Mnemonico-Identificacao'] != 'H') and (dusiInfoLine['Mnemonico-Identificacao'] != 'T') and (dusiInfoLine['Mnemonico-Identificacao'] != 'E')):
+                    # [Se diferente de H=> hidro e T=> termo nao concateno no dusiInfoBase]
+                    # Nao concateno mais E=> Elevatorio
+                    if ((dusiInfoLine['Mnemonico-Identificacao'] != 'H') and (dusiInfoLine['Mnemonico-Identificacao'] != 'T')):
                         continue
                     
                     numeroIdentificacaoDusi = dusiInfoLine['Numero-Barra-Elemento-Conectado']

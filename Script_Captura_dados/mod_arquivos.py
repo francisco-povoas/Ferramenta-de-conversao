@@ -62,13 +62,14 @@ class tratamentoGeralArquivos:
 
             self.informacoesBlocosArquivoPatamar = coletaBlocosArquivosPatamar(self.arquivoPatamar)
 
-            self.informacoesArquivosUsinas = coletaDadosUsinas(USINA_HIDRAULICA, USINA_TERMOELETRICA, self.estagio)
+            self.informacoesArquivosUsinas = coletaDadosUsinas(USINA_HIDRAULICA, USINA_TERMOELETRICA, USINA_EOLICA, self.estagio)
 
             self.informacoesCmoBarras = coletaDadosCmoBarras(CMO_BARRAS, self.estagio)
             
             self.montandoEstruturaMpcBus()
             self.montandoEstruturaMpcBranch()
             self.montandoEstruturaMpcGen()
+            self.montandoEstruturaMpcBusAdd()
             self.montaArquivoMatPower()
             self.escreveArquivoMatPower()
 
@@ -77,6 +78,10 @@ class tratamentoGeralArquivos:
 
             # pegando dados para montar bus_data (mpc.bus)
             for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
+                if self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado'] == 'D':
+                    # Barras em Estado desligado nao utilizo no mpcGen
+                    # A principio barras desligadas nao estao contidas no arquivo pdo_cmo.dat
+                    continue
 
                 BUS_I = ''
                 BUS_TYPE = ''
@@ -105,14 +110,25 @@ class tratamentoGeralArquivos:
                     BUS_TYPE = '3'
 
                 BUS_AREA = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Area']
-                PD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Ativa']
                 QD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Reativa']
                 
-                try:
-                    PD = float(PD)
-                except:
-                    PD = 0
-                
+                if BUS_I in self.informacoesArquivosUsinas.infoUsinaEolica:
+                    try:
+                        PD = float(self.informacoesArquivosUsinas.infoUsinaEolica[BUS_I]['Geracao-Operada'])
+                        if float(PD) > 0:
+                            PD = float(PD) * -1
+                        # se ja for menor nao preciso aplicar multiplicacao pra tornar a carga negativa ...
+                    except Exception as error:
+                        print('problema passando pd para passar para carga negativa, investigue o problema. Barra: '+ BUS_I)
+                        print(error)
+                        PD = 0
+                else:
+                    PD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Ativa']
+                    try:
+                        PD = float(PD)
+                    except:
+                        PD = 0
+                    
                 try:
                     QD = float(QD)
                 except:
@@ -121,7 +137,9 @@ class tratamentoGeralArquivos:
 
                 if BUS_AREA in self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase']:
                     FATOR_CORRECAO_CARGA = self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase'][BUS_AREA]['Fator-Correcao']
-                    if FATOR_CORRECAO_CARGA:
+                    
+                    # Se PD eh proveniente de Eolica nao aplico fator de correcao.
+                    if FATOR_CORRECAO_CARGA and BUS_I not in self.informacoesArquivosUsinas.infoUsinaEolica:
                         if PD: PD = float(PD) * (float(FATOR_CORRECAO_CARGA) / 100)
                         if QD: QD = float(QD) * (float(FATOR_CORRECAO_CARGA) / 100)
 
@@ -169,7 +187,6 @@ class tratamentoGeralArquivos:
         def montandoEstruturaMpcBranch(self):
             self.mpcBranch = {}
 
-            # pegando dados para montar bus_data (mpc.bus)
             for linhaFromTo in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase']:
 
                 F_BUS = ''
@@ -201,11 +218,9 @@ class tratamentoGeralArquivos:
                 if not STATUS:
                     STATUS = '1'
                     # circuito ligado
-                    pass
                 elif STATUS == 'D':
                     # circuito desligado
                     STATUS = '0'
-                    pass
 
                 # Se nao encontrou valor preenche com 0
                 try: float(TAP)
@@ -249,32 +264,28 @@ class tratamentoGeralArquivos:
         def montandoEstruturaMpcGen(self):
             self.mpcGen = {}
             for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
-                BUS_NAME = ''
-                BUS_SUBS = ''
-                BUS_CMO = ''
+                if self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado'] == 'D':
+                    # Barras em Estado desligado nao utilizo no mpcGen
+                    # A principio barras desligadas nao estao contidas no arquivo pdo_cmo.dat
+                    continue
                 
-                GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
-                # print('GEN_BUS = '+ GEN_BUS + ' TYPE = '+ str(type(GEN_BUS)))
-                
-                if GEN_BUS in self.informacoesCmoBarras.infoCmo:
-                    if 'Nome-Barra' in self.informacoesCmoBarras.infoCmo[GEN_BUS] and \
-                       'Subsistema' in self.informacoesCmoBarras.infoCmo[GEN_BUS] and \
-                       'Custo-Marginal' in self.informacoesCmoBarras.infoCmo[GEN_BUS]:
-                        BUS_NAME = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Nome-Barra']
-                        BUS_SUBS = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Subsistema']
-                        BUS_CMO = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Custo-Marginal']
-                    else:
-                        BUS_NAME = '-'
-                        BUS_SUBS = '-'
-                        BUS_CMO = 0.00
-                else:
-                        BUS_NAME = '-'
-                        BUS_SUBS = '-'
-                        BUS_CMO = 0.00
+                BUS_TYPE = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tipo']
+                if BUS_TYPE == '': BUS_TYPE = '0' # Default
+                # DESSEM PQ = 0, PV = 1, ref V0 = 2
+                # MATPOWER PQ = 1, PV = 2, ref = 3, isolada = 4
+                if BUS_TYPE == '0':
+                    BUS_TYPE = '1'
+                elif BUS_TYPE == '1':
+                    BUS_TYPE = '2'
+                elif BUS_TYPE == '2':
+                    BUS_TYPE = '3'
 
-                try: float(BUS_CMO)
-                except: BUS_CMO = 0.00
-                
+                if BUS_TYPE == '1':
+                    # nao coloco barra tipo PQ no bloco mpc.gen e gencost
+                    continue
+
+                GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
+
                 PG = 0.00
                 QG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa']
                 QMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Maxima']
@@ -306,6 +317,7 @@ class tratamentoGeralArquivos:
                 RAMP_Q = 0.00
                 APF = 0.00
 
+                # Nova atualizacao, la em cima nem deixo continuar se estado for desligado.
                 # Tratando estado
                 # "L" ou branco => A barra esta ligada;
                 # "D" => A barra esta desligada;
@@ -313,10 +325,6 @@ class tratamentoGeralArquivos:
 
                 VG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tensao']
                 
-                Grupo_De_Base_De_Tensao = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Grupo-De-Base-De-Tensao'] # usado apenas para pegar a tensao base no bloco dgbt
-                if Grupo_De_Base_De_Tensao in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgbtInfoBase']:
-                    BASEKV = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dgbtInfoBase'][Grupo_De_Base_De_Tensao]['Tensao-Nominal-Grupo-Base-KV']
-
                 VG = float(VG)/1000
 
                 # declarando antes do laco for as variaveis de geracao caso nao entre no if que elas sao usadas
@@ -336,19 +344,18 @@ class tratamentoGeralArquivos:
                 ### MPC GENNAME ####
                 TIPO = '-'
                 ####
-                NOME_USINA_CORRETO = '-'
-                # print(self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'])
-                for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
 
+                for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
+                    
+                    # talvez alterar o for acima por if GEN_BUS in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
                     if(chaveNumeroBarra == GEN_BUS):
                         
                         # Nome incorreto. precisa ser alterado para o que esta contido dentro de pdo_term e pdo_hidr.
                         # Elevatoria nao vai atualizar, ja que nao trato tipo E... pegarah valores padroes 0.00
-                        NOME_USINA_CORRETO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
+                        # NOME_USINA_CORRETO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
                         
-                        # TIPO OK
+                        # TIPO
                         TIPO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Mnemonico-Identificacao']
-                        
                         numeroCadastroUsina = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Numero-Cadastro-Usina']
                         
                         # Nao somar H com T. dependendo do tipo entra num dos blocos abaixo...
@@ -360,8 +367,7 @@ class tratamentoGeralArquivos:
                                     geracaoMaximaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Maxima-MW']
                                     geracaoMinimaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Minima-MW']
                                     custoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Vagua-MWh']
-                                    # print('TIPO = '+ TIPO+' NOME_USINA = '+ NOME_USINA_DUSI + '; USINA = '+ self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Usina'] + ' CVU = '+ custoUsinaHidraulica)
-                                    NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Usina']
+
                                     try: geracaoUsinaHidraulica = float(geracaoUsinaHidraulica)
                                     except: geracaoUsinaHidraulica == 0.0
 
@@ -385,8 +391,7 @@ class tratamentoGeralArquivos:
                                     geracaoMaximaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Maxima-MW']
                                     geracaoMinimaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Minima-MW']
                                     custoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Custo-Linear-MWh']
-                                    # print('TIPO = '+ TIPO+' NOME_USINA = '+ NOME_USINA_DUSI + '; USINA = '+ self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Usina']+ ' CVU = '+ custoUsinaTermoeletrica)
-                                    NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Usina']
+
                                     try: geracaoUsinaTermoeletrica = float(geracaoUsinaTermoeletrica)
                                     except: geracaoUsinaTermoeletrica == 0.0
                                     
@@ -404,9 +409,8 @@ class tratamentoGeralArquivos:
                                     PMIN = geracaoMinimaUsinaTermoeletrica
                                     CVU = custoUsinaTermoeletrica
                         else:
-                            # Aqui pode conter E pego no bloco dusi (elevatoria) preencherei com '-' e nao considerarei pontecias...
-                            TIPO = '-'
-                            pass
+                            # Aqui pode conter E pego no bloco dusi (elevatoria) nao considerarei.
+                            continue
 
                 # chavebarra = 'barra-10', 'barra-50'....
                 self.mpcGen[chavebarra] = {
@@ -432,13 +436,89 @@ class tratamentoGeralArquivos:
                 'RAMP_Q': RAMP_Q,
                 'APF': APF,
                 'CVU': CVU, # Usado no mpc gencost
-                'TIPO': TIPO, # Usado no mpc additional data
-                'NOME_USINA': NOME_USINA_CORRETO, # Usado no mpc additional data
-                'BUS_NAME': BUS_NAME, # Usado no mpc additional data
-                'BUS_SUBS': BUS_SUBS, # Usado no mpc additional data
-                'BUS_CMO': BUS_CMO, # Usado no mpc additional data
                 }
+
+        # MpcGen poderia ser aproveitado para montar MpcBusAdd uma vez que ele realiza os mesmos lacos por dbar.
+        # Aproveitar MpcGen seria uma esforco computacional menor, como o algoritmo nao precisa ficar atendendo solicitacoes em tempo real nao vejo motivos para nao organizar outro bloco de construcao da estrutura busadd.
+        def montandoEstruturaMpcBusAdd(self):
+            self.mpcBusAdd = {}
+            for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
+                if self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado'] == 'D':
+                    # Barras em Estado desligado nao utilizo no mpcGen nem aqui em mpcBusAdd
+                    # A principio barras desligadas nao estao contidas no arquivo pdo_cmo.dat
+                    continue
                 
+                BUS_NAME = ''
+                BUS_SUBS = ''
+                BUS_CMO = ''
+                NOME_USINA_CORRETO = ''
+                GEN_TYPE = ''
+                
+                # numero da barra, 260 por exemplo.
+                GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
+
+                if GEN_BUS in self.informacoesCmoBarras.infoCmo:
+                    if 'Nome-Barra' in self.informacoesCmoBarras.infoCmo[GEN_BUS] and \
+                       'Subsistema' in self.informacoesCmoBarras.infoCmo[GEN_BUS] and \
+                       'Custo-Marginal' in self.informacoesCmoBarras.infoCmo[GEN_BUS]:
+                        BUS_NAME = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Nome-Barra']
+                        BUS_SUBS = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Subsistema']
+                        BUS_CMO = self.informacoesCmoBarras.infoCmo[GEN_BUS]['Custo-Marginal']
+                    else:
+                        BUS_NAME = '-'
+                        BUS_SUBS = '-'
+                        BUS_CMO = 0.00
+                else:
+                        BUS_NAME = '-'
+                        BUS_SUBS = '-'
+                        BUS_CMO = 0.00
+
+                try: float(BUS_CMO)
+                except: BUS_CMO = 0.00
+
+            # preciso pegar o nome do gen_type e gen_name
+            # verificar inicialmente se a barra ta no dusi, se tiver pego tipo e procuro nos resultados de T e H
+            # se ela nao estiver tento ver se esta nos resultados de Eolica.
+
+                if GEN_BUS in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
+                    NOME_USINA_CORRETO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][GEN_BUS]['Nome-Usina']
+                    GEN_TYPE = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][GEN_BUS]['Mnemonico-Identificacao']
+                    numeroCadastroUsina = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][GEN_BUS]['Numero-Cadastro-Usina']
+
+                    if GEN_TYPE == 'H':
+                        for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
+                            if numeroCadastroUsina == self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Numero-Cadastro-Usina']:
+                                NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Usina']
+                    elif GEN_TYPE == 'T':
+                        for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
+                            if numeroCadastroUsina == self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Numero-Cadastro-Usina']:
+                                NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Usina']
+                    else:
+                        # Nao guardo mais nada diferente de T e E nas informacoes de Dusi, entao nao deve cair aqui.
+                        pass
+
+                elif GEN_BUS in self.informacoesArquivosUsinas.infoUsinaEolica:
+                    GEN_TYPE = self.informacoesArquivosUsinas.infoUsinaEolica[GEN_BUS]['Tipo'] # fixado em EO
+                    NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaEolica[GEN_BUS]['Nome']
+                else:
+                    # barra sem usina EO, T e H
+                    # print('Barra sem usina: '+ GEN_BUS)
+                    pass
+                    # talvez criar um continue, nem precisa entrar no busadd. averiguar
+
+                if not GEN_TYPE: GEN_TYPE = '-'
+                if not NOME_USINA_CORRETO: NOME_USINA_CORRETO = '-'
+
+                # chavebarra = 'barra-10', 'barra-50'....
+                self.mpcBusAdd[chavebarra] = {
+                'BUS_I': GEN_BUS,
+                'BUS_NAME': BUS_NAME,
+                'BUS_SUBS': BUS_SUBS,
+                'BUS_CMO': BUS_CMO,
+                'GEN_TYPE': GEN_TYPE,
+                'GEN_NAME': NOME_USINA_CORRETO,
+                }
+
         def montaArquivoMatPower(self):
             doisTabEspace = '   '
 
@@ -597,15 +677,16 @@ class tratamentoGeralArquivos:
                     ';\n'
                     )
                 
+            for chavebarra in self.mpcBusAdd:
                 # mpcbusadd
                 self.arquivoAdditionalData += (
                     doisTabEspace +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),16)        +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['BUS_NAME'])),16) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['BUS_SUBS'])),16) +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['BUS_CMO']),16)        +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen[chavebarra]['TIPO'])),16)     +
-                    repr(str(self.mpcGen[chavebarra]['NOME_USINA']))                                                      +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBusAdd[chavebarra]['BUS_I']),16)        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcBusAdd[chavebarra]['BUS_NAME'])),16) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcBusAdd[chavebarra]['BUS_SUBS'])),16) +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBusAdd[chavebarra]['BUS_CMO']),16)        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcBusAdd[chavebarra]['GEN_TYPE'])),16)     +
+                    repr(str(self.mpcBusAdd[chavebarra]['GEN_NAME']))                                                      +
                     ';\n'
                     )
 
@@ -620,7 +701,6 @@ class tratamentoGeralArquivos:
 
             self.arquivoBranchData = ''
             self.arquivoBranchData += '%% branch data\n'
-            # self.arquivoBranchData += '%	fbus	tbus	r	x	b	rateA	rateB	rateC	ratio	angle	status	angmin	angmax\n'
             self.arquivoBranchData += ('%	' + 	retornaStringArrumadaParaEscreverComTamanhoCorreto('fbus',10) +
             retornaStringArrumadaParaEscreverComTamanhoCorreto('tbus',10)   +
             retornaStringArrumadaParaEscreverComTamanhoCorreto('r',10)      +

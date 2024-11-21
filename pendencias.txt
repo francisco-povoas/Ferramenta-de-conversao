@@ -1,5 +1,237 @@
 1 ) Inserir no cabecalho do arquivo gerado informacoes dos arquivos que os dados foram extraidos. arquivo, patamar etc.
 2) Padronizar variaveis em ingles ou portugues. Usar dois padroes eh incorreto.
 3) alterar de 0.00 para apenas 0
-4) considerar elevatoria?
 5) Adicionar readme, como rodar e como configurar pasta dos arquivos para leitura dos dados.
+
+
+Além disso, eu vi outras informações que seriam úteis do resultado do DESSEM, é o custo marginal (cmo) por barra, o nome das barras e o subsistema delas, do arquivo pdo_cmobar.dat.
+Podemos colocar essa informação na matriz mpc.genname. Adicionando três colunas nela bus_name, bus_subs e bus_cmo
+[bus_i       bus_name      bus_subs      bus_cmo      gen_ type       gen_name]
+
+bus_i seria o que já tem na coluna "bus"
+gen_ type seria o que hoje é o "tipo"
+gen_name o que atualmente é "name"
+As outras três colunas, bus_name, bus_subs e bus_cmo você le do arquivo pdo_cmobar colunas "Nome", "Sist" e "Cmarg", respectivamente.
+
+No fim teríamos isso:
+
+%% bus additional data
+%  bus_i       bus_name      bus_subs      bus_cmo      gen_ type       gen_name
+mpc.busadd = [ ...
+
+7)
+
+Outras coisas para verificar:
+
+% ajustes:
+linha 1
+ nome deve ser igual ao nome do arquivo
+R: (Um dia foi o nome do arquivo, esqueci de atualizar depois que definimos novo nome para os arquivos .m) Resolvido.
+commit: https://github.com/francisco-povoas/Ferramenta-de-conversao/commit/720034d70ca5bbfcef2504e9757025dd9fe64981
+
+linha 53104
+    5660      T         TERMOCEARA(L;
+    existe esse parêntese no nome? pq em matlab ele entende como função, se for isso mesmo converter parentese para "_"
+R: (Sim, existe o parêntese no nome. Estamos pegando os nomes das usinas atraves do bloco dusi contidos nos arquivos bases (leve, media, peasada [.pwf]))
+Notei que no arquivo pdo_term.dat o nome da usina está correto, TERMOCEARA apenas...
+Outro detalhe há diferença na identificacao com algarismos nas usinas, ao passo que leve.pwf traz MARANHAO 3 pdo_term.dat escreve MARANHAO IV
+Graças a atençao do senhor, notei que estavamos pecando em determinado ponto onde comparavamos o nome da USINA capturada pelo bloco dusi com o capturado pdo_term.dat ou pdo_hidr.dat e isso ocasionario erro em certos casos onde houvesse diferença na forma como a usina ta escrita.
+
+diferenças:
+leve.pwf        pdo_hidr.dat     pdo_term.dat
+GUILMA AMORI    GUILMAN-AMOR
+E.CUNHA         E. DA CUNHA
+TERMOCEARA(L                     TERMOCEARA
+L.C.BARRETO     ESTREITO
+
+Para nossa sorte e possivel relacionar as usinas atraves do Numero-Cadastro-Usina, entao mesmo que haja leves variacoes nos nomes, será possivel identifica-las atraves disso.
+Caso curioso eh L.C.BARRETO chamada no leve.pwf e dita como tipo 'h' hidraulica e atraves do Numero-Cadastro-Usina eh possivel verificar que ela eh identificada por ESTREITO em pdo_hidr.dat
+Inicialmente achei que tinha algum erro quando me deparei com o caso de L.C.BARRETO, pensei em aplicar um algoritmo de similiaridade, mas há casos que nao funcionaria... Precisamos apenas confiar no Numero-Cadastro-Usina
+Apliquei um algoritmo exemplo de Levenshtein para o seguinte caso -> is_similar('USINA PA-I', 'P.AFONSO 123')) e retornaria que nao sao a mesma coisa, apesar de serem.. possuem mesmo Numero de cadastro e elementos conectados na barra e apesar disso o algoritmo diria que nao sao a mesma coisa. Por isso precisamos apenar confiar no numero de cadastro, podemos conversar melhor na terça...
+-------------------------
+commit: https://github.com/francisco-povoas/Ferramenta-de-conversao/commit/2bdb0197f80eb64008834cb98fe8cd2773acfa13
+
+linhas 413, 654, 1102, 1126, 1131, 1136, 1170 a 1191, 2587, 2573, 2603,
+ 2605,  2727 a 2780, 2846, 2849, 2850, 2990, 3020, e várias outras linhas
+sem limites de tensão (verificar se não tem a informação, caso não tenha, deixar como default 1.05    0.95.
+R: (Verificado que varias barras estao sem grupos, entao nao consigo relaciona-los com os grupos do bloco dglt.)
+Farei como o senhor propos, irei colocar os limites 1.05 e 0.95.
+ds_ons_122023_rv0d29_Estagio31 1400 a 1430 sem limites de tensao.
+commit: https://github.com/francisco-povoas/Ferramenta-de-conversao/commit/b03da71c39ffe92dd3e698e9337198f7f8dbe6bf
+
+linha 1088
+ limite de tensão é 1.9 e 0.4 mesmo?
+R: (Sim, cada barra esta relacionada a um grupo)
+aqui 1088 deu o seguinte: 1.05 e 0.95;
+porém, 41088 deu 1.9 e 0.4, mas eh coerente dado os valores para os grupos:
+
+DGLT
+(G (Vmn) (Vmx) (Vmne (Vmxe
+ 5   .95  1.05    .9  1.05
+ 3    1.   1.1   .95   1.1
+ 6    .4   1.9    .4   1.9
+ 1    .9 1.046    .9 1.046
+ 2   .95 1.048    .9 1.048
+40  .848 1.129  .848 1.129
+ 4   .95 1.046    .9 1.046
+ 0    .8   1.2    .9 1.048
+16   .93 1.048   .93 1.048
+ 8    .9   1.1    .9   1.1
+ 7    .9  1.05    .9  1.05
+11   .98  1.07   .98  1.07
+ 9    .9 1.048    .9 1.048
+42  .763 1.077  .763 1.077
+13   .95  1.05   .98  1.07
+41  .752 1.089  .752 1.089
+
+
+8 ) do manual do ANAREDE: "Os grupos que não forem definidos terão valores limites de tensão, mínimo e máximo, iguais a 0.8 e 1.2 pu, respectivamente", 
+R: feito, commit: https://github.com/francisco-povoas/Ferramenta-de-conversao/commit/a35f52d0c771b30157061d83fd33a5133108b024
+
+
+9) Outro detalhe, o Matlab não aceita elemento vazio na matriz, então na coluna gen_type, teria que ter alguma coisa em barras que não são usinas, um -, por exemplo.
+
+10) Na real, essa matriz teria que ser outro formato, por conter texto. No Matlab teria que ser assim:
+
+mpc.busadd = {
+   10            'ANGRA1UNE000'  'SE'            0.00          'T'             'ANGRA 1';
+   11            'ANGRA2UNE001'  'SE'            0.00          'T'             'ANGRA 2';
+   12            'LCBARRUHE004'  'SE'            0.00          'H'             'ESTREITO';
+   13            'LCBARRSI-000'  'SE'            0.00          '-'             '-';
+   14            'FUNIL-UHE001'  'SE'            0.00          'H'             'FUNIL';
+   16            'FURNASUHE005'  'SE'            0.00          'H'             'FURNAS';
+   17            'FURNASSI-000'  'SE'            0.00          '-'           '-';
+   18            'ITUMBIUHE004'  'SE'            0.00          'H'             'ITUMBIARA';
+   19            'ITUMBISI-000'  'SE'            0.00          '-'           '-';
+...   
+}
+
+Usar {} ao invés de [] e usar ' para delimitar o texto. Além de colocar algo para indicar posição vazio (no caso '-').
+
+R: Dúvida?? Preciso colocar delimitador ; no termino do }? como eh feito com o ];  ?
+mpc.busadd = {
+  ...
+};
+
+ou
+
+mpc.busadd = {
+  ...
+}
+
+O que fazer com barras sem subsistema e nome? por enquanto irei preencher com '-'
+feito, commit: https://github.com/francisco-povoas/Ferramenta-de-conversao/commit/b2194d1ddd9c54be5d2b8f2bfd53a19f0827c4ca
+
+gerado novamente os 48 arquivos .m
+
+---------------
+
+Encaminhamentos reuniao 19 Novembro ->>>
+
+1 ) mpc gen nao incluir barras pq's tipo 0 do anarede, que estao sem geracao. tipo 1 matpower. Barras sem gerador nao incluir.
+# DESSEM PQ = 0, PV = 1, ref V0 = 2
+# MATPOWER PQ = 1, PV = 2, ref = 3, isolada = 4
+gencost tambem vai ser reduzido, ele precisa ter a mesma estrutura do gen. respeitar a sequencia.
+R: Feito. Removi barras do tipo PQ do gen e gencost
+
+2) barras com estado D, nao incluir em mpc.bus, mpc.busadd, mpc.gen e mpc.gencost (barras com estado D nao sao encontradas em pdo_cmo)
+R: Feito.
+
+3 )
+adicionar eolica.
+- pd geracao operada. ele nao entra como pg e sim pd no mpcbus. nao é gerador. (só usar geracao operada, geracao nao entra.)
+- se tiver mais de uma linha para mesma barra, somar geracao operada e colocar negativo no valor final para pd.
+- para as eolicas pegar geracao operada e colocar como pd negativo no bus, nao entra no mpc gen.
+- Fator de correcao nao deve ser aplicado nos PD da geracao eolica, tomar esse cuidado. ver melhor ponto na montagem do mpcbus...
+R: Feito, eolica adicionado no gentype e genname do busadd apesar de nao entrar no mpc.gen, entra como carga negativa no mpc.bus.
+ Nao aplicado fator de correcao no PD proveniente de Eolica,
+ Somando geracao-operada para quando pdo_eolica.dat trazia mais uma linha de informacao pra mesma barra,
+ Concatenado nomes diferentes de usina eolica para mesma barra.
+ Mesmo apos inserir Eolica no busadd, há ainda barras sem gerador.
+
+4) aumentar espacamento entre nome da barra e subsistema, aumentar de 14 para pelo menos 16.
+R: Feito, commit: https://github.com/francisco-povoas/Ferramenta-de-conversao/commit/bcd2935893dda82649a53d3a361b2287ecdf05b4
+
+
+Dúvidas:
+
+1) Exemplo do arquivo estagio1 barra 11 tipo (2 PV) Qg está acima do qmax no mpc.bus.
+Outro detalhe, nós nao temos onde atualizar o qg, ele é pego do bloco dbar e nao achei nenhum lugar pra atualizar ele...
+
+2) barras pv sem geracao (pg) eu removo de mpc.gen?
+exemplo barra 10, tipo PV tipo 2 matpower sem geracao....
+
+bloco dusi do leve.pwf
+barra 10 possui numero de cadastro de usina 1, referenciado no pdo_term.dat por USIT.
+DUSI
+(No) O (No) (Nome      )  ## DD (Pmin)(Pmax)(Qmin)(Qmax)    (Dumm)(Dumm)(No)#t
+( *** USINAS TERMELETRICAS *** )
+ 230     10 ANGRA 1        1                                               1 T
+
+arquivo pdo_term.dat
+----;-------;----;-------------;----;----;-----------;-----------;-----------;------------;-----;-----------;
+IPER;  Pat  ;USIT;     Nome    ;Unid;Sist;  Geracao  ;    GMin   ;    GMax   ; Capacidade ; L/D ;CustoLinear;
+    ;       ;    ;             ;    ;    ;     MW    ;     MW    ;     MW    ;      MW    ;     ;   $/(MWh) ;
+----;-------;----;-------------;----;----;-----------;-----------;-----------;------------;-----;-----------;
+  1 ;  LEVE ;  1 ;ANGRA 1      ;  1 ; SE ;      0.00 ;      0.00 ;      0.00 ;     640.00 ;  D  ;     31.17 ;
+  1 ;  LEVE ;  1 ;ANGRA 1      ; 99 ; SE ;      0.00 ;      0.00 ;      0.00 ;     640.00 ;  -  ;           ;
+
+Neste caso apesar da barra ser PV a geracao é 0.00, (Geracao MW), é uma barra que devo remover de mpc.gen e mpc.gencost ou devo deixar?
+
+
+3) Outro ponto que eu gostaria de mencionar é o seguinte: olhe a saida do mpc gen abaixo para as barras 5006, 5009, 5010, 5011, 5012, 5013, 5014, 5015 e 5016. Todas ficaram com pg = 207,87.
+Por que elas ficaram todas com o mesmo pg? Resposta: porque essas barras no bloco dusi possuem o mesmo numero de cadastro de usina 174 e todas sao Hidraulicas e hoje só pegamos o pg no campo Geracao MW para a Unid = 99.
+Por isso todas as barras ficam com a mesma potencia...
+pelo bloco dusi antes do mnemonico H elas possuem a diferenciação pelo algarismo do grupo identificado ali de 1 a 5. e talvez seja a relacao para o CONJ.
+Será que está correto manter essa potencia para todas as barras ao inves de pegarmos pelo CONJ? mas se notarmos há mais de uma linha para cada CONJ, teriamos que somar as potencias por CONJ tambem.
+
+
+----;--------;----;--------------;----;-----;-------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;------------;------------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;------------;------------;-----;-----------;-----------;
+    ;        ;    ;              ;    ;     ;       ;   Vagua   ;       Vol.Final ;     ;         Qincr        ;;         Qmont        ;;         Qmontv       ;;         Qdesv        ;;         QEvap        ;;      VazUsoAltern      ;;         Qtur         ;;        QturMin       ;;        QturMax       ;;        Engolimento   ;;         Vert         ;;  Geracao  ;    Gmax    ; Capacidade ;     ;  Perdhid  ;  Hqueda   ;
+IPER;   Pat  ;USIH;     Nome     ;SIST;CONJ ; Unid  ;   $/MWh   ;    Hm3    ;   %       ;   m3/s    ;    Hm3    ;   m3/s    ;    Hm3    ;    m3/s   ;     Hm3   ;     m3/s  ;      Hm3  ;    m3/s   ;     Hm3   ;  m3/s      ;    Hm3     ;     m3/s  ;      Hm3  ;    m3/s   ;     Hm3   ;   m3/s    ;    Hm3    ;   m3/s    ;    Hm3    ;    m3/s   ;     Hm3/s ;     MW    ;     MW     ;     MW     ; L/D ;     MW    ;     m     ;
+----;--------;----;--------------;----;-----;-------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;------------;------------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;-----------;------------;------------;-----;-----------;-----------;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   1 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;     38.81 ;     -      ;      60.00 ;  L  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   1 ;    2  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;      0.00 ;     -      ;      60.00 ;  L  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   1 ;    3  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;      0.00 ;     -      ;      60.00 ;  D  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   2 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;      0.00 ;     -      ;      70.00 ;  D  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   2 ;    2  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;      0.00 ;     -      ;      70.00 ;  D  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   3 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;     28.37 ;     -      ;      75.00 ;  L  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   4 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;     76.00 ;     -      ;      76.00 ;  L  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   4 ;    2  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;      0.00 ;     -      ;      76.00 ;  D  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   4 ;    3  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;     13.15 ;     -      ;      76.00 ;  L  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   5 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;      0.00 ;     -      ;     198.55 ;  L  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   5 ;    2  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;      0.00 ;     -      ;     198.55 ;  L  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   5 ;    3  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;     51.53 ;     -      ;     198.55 ;  L  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;   5 ;    4  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1900.00 ;      3.42 ;           ;           ;           ;           ;      0.00 ;     -      ;     198.55 ;  D  ;      0.00 ;           ;
+  1 ;   LEVE ;174 ; P.AFONSO 123 ; NE ;  99 ;   99  ;      0.00 ;     -     ;     -     ;      0.00 ;      0.00 ;    448.62 ;      0.81 ;      0.00 ;      0.00 ;      0.00 ;      0.00 ;      0.30 ;      0.00 ;      0.10  ;      0.00  ;    264.21 ;      0.48 ;      0.00 ;      0.00 ;   1312.48 ;      2.36 ;   1312.48 ;      2.36 ;    184.01 ;      0.33 ;    207.87 ;     942.65 ;    1417.20 ;  -  ;      0.00 ;     91.74 ;
+
+BLOCO DUSI
+DUSI
+(No) O (No) (Nome      )  ## DD (Pmin)(Pmax)(Qmin)(Qmax)    (Dumm)(Dumm)(No)#t
+ 217   5006 USINA PA-I     3                                             1741H
+ 218   5009 USINA PA-II    1                                             1742H
+ 219   5010 USINA PA-II    1                                             1742H
+ 220   5011 USINA PA-II    1                                             1743H
+ 221   5012 USINA PA-II    1                                             1744H
+ 222   5013 USINA PA-II    1                                             1744H
+ 223   5014 USINA PA-II    1                                             1744H
+ 224   5015 USINA PA-III   2                                             1745H
+ 225   5016 USINA PA-III   2                                             1745H
+
+
+ MPC GEN
+%% generator data
+%	 bus       Pg        Qg        Qmax      Qmin      Vg        mBase     status    Pmax      Pmin      Pc1       Pc2       Qc1min    Qc1max    Qc2min    Qc2max    ramp_agc  ramp_10   ramp_30   ramp_q    apf
+mpc.gen = [
+   5006      207.87    -147.0    0.0       0.0       0.981     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+   5009      207.87    -7.16     0.0       0.0       1.057     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+   5010      207.87    -9.91     0.0       0.0       1.057     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+   5011      207.87    -22.0     0.0       0.0       1.057     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+   5012      207.87    -12.4     0.0       0.0       1.057     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+   5013      207.87    -27.8     0.0       0.0       1.057     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+   5014      207.87    -28.3     0.0       0.0       1.057     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+   5015      207.87    -144.0    0.0       0.0       1.008     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+   5016      207.87    -330.0    0.0       0.0       0.962     100       1         942.65    0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0;
+
+
+   Gerado novamente 48 arquivos .m

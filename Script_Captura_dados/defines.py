@@ -14,6 +14,7 @@ PESADA_PWF = CAMINHO+BLOCO_REVISAO+'/pesada.pwf'
 ########## Arquivos de Usinas #############
 USINA_HIDRAULICA = CAMINHO+BLOCO_REVISAO+'/pdo_hidr.dat'
 USINA_TERMOELETRICA = CAMINHO+BLOCO_REVISAO+'/pdo_term.dat'
+USINA_EOLICA = CAMINHO+BLOCO_REVISAO+'/pdo_eolica.dat'
 
 ########## Arquivo de CMO barras #############
 CMO_BARRAS = CAMINHO+BLOCO_REVISAO+'/pdo_cmobar.dat'
