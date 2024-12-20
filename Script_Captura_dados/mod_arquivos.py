@@ -6,6 +6,7 @@ from comum_functions_usina import *
 from comum_functions_cmo import *
 from defines import *
 import os
+from copy import deepcopy
 
 class coletaInfoEstagio:
     def __init__(self, estagio):
@@ -62,6 +63,7 @@ class tratamentoGeralArquivos:
 
             self.informacoesBlocosArquivoPatamar = coletaBlocosArquivosPatamar(self.arquivoPatamar)
 
+            # coletaDadosUsinas nao faz mais sentido, preciso ajustar antes informacoes do dusi, talvez fazer aqui dentro mesmo antes de varrer usinas T e H
             self.informacoesArquivosUsinas = coletaDadosUsinas(USINA_HIDRAULICA, USINA_TERMOELETRICA, USINA_EOLICA, self.estagio)
 
             self.informacoesCmoBarras = coletaDadosCmoBarras(CMO_BARRAS, self.estagio)
@@ -263,191 +265,421 @@ class tratamentoGeralArquivos:
 
         def montandoEstruturaMpcGen(self):
             self.mpcGen = {}
-            for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
-                if self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado'] == 'D':
+            self.mpcGen['H'] = {}
+            self.mpcGen['T'] = {}
+            self.mpcGen['TOTAL'] = {}
+            # TALVEZ AQUI CRIAR um mpcGen['TOTAL'] pra montar arquivo matpower com mais facilidade.
+
+            # MPC GEN GENCOST E GENADD precisam ter mesma estrutura.
+
+            # cada numero de identificacao considero como um gerador, ele sera uma linha de mpc gen por exemplo.
+            # posso ter n linhas com a mesma barra, porem sao numeros de identificacao diferente no bloco dusi.
+            # no fim das contas mpc gen terah que ter o mesmo numero de numero de identificacao do bloco dusi, sem contar as elevatorias.
+
+            # esse for irah iterar na ordem de coleta do dusi comecando do primeiro elemento. (No 1)
+            listaDusiNaoAdicionados = []
+            for numeroIdentificacaoDusi in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
+                mnemonico           = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][numeroIdentificacaoDusi]['Mnemonico-Identificacao']
+                grupo               = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][numeroIdentificacaoDusi]['Numero-Grupo-Pertencimento-Usina']
+                unidade             = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][numeroIdentificacaoDusi]['Numero-Unidades-Geradoras-Elemento']
+                barra               = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][numeroIdentificacaoDusi]['Numero-Barra-Elemento-Conectado']
+                numeroCadastroUsina = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][numeroIdentificacaoDusi]['Numero-Cadastro-Usina']
+
+
+                if barra not in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
+                    listaDusiNaoAdicionados.append(numeroIdentificacaoDusi)
+                    continue # nao encontrou a barra e nao adiciono elemento dusi no mpc gen.
+                else:
+
+
+                    BUS_TYPE = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][barra]['Tipo']
+                    if BUS_TYPE == '': BUS_TYPE = '0' # Default
+                    # DESSEM PQ = 0, PV = 1, ref V0 = 2
+                    # MATPOWER PQ = 1, PV = 2, ref = 3, isolada = 4
+
+                    busConvertionDessemToMatpower = {
+                        '0': '1',
+                        '1': '2',
+                        '2': '3',
+                    }
+                    BUS_TYPE = busConvertionDessemToMatpower.get(BUS_TYPE, None)
+
+                    if BUS_TYPE == None or BUS_TYPE == '1':
+                        listaDusiNaoAdicionados.append(numeroIdentificacaoDusi)
+                        continue # barra sem tipo ou barra do tipo PQ, nao inserir no mpc gen e dar um continue na sequencia.
+
+                    GEN_STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][barra]['Estado']
+                    # Tratando estado
+                    # "L" ou branco => A barra esta ligada;
+                    # "D" => A barra esta desligada;
+                    GEN_STATUS = '0' if GEN_STATUS == 'D' else '1'
+
                     # Barras em Estado desligado nao utilizo no mpcGen
                     # A principio barras desligadas nao estao contidas no arquivo pdo_cmo.dat
-                    continue
-                
-                BUS_TYPE = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tipo']
-                if BUS_TYPE == '': BUS_TYPE = '0' # Default
-                # DESSEM PQ = 0, PV = 1, ref V0 = 2
-                # MATPOWER PQ = 1, PV = 2, ref = 3, isolada = 4
-                if BUS_TYPE == '0':
-                    BUS_TYPE = '1'
-                elif BUS_TYPE == '1':
-                    BUS_TYPE = '2'
-                elif BUS_TYPE == '2':
-                    BUS_TYPE = '3'
+                    if GEN_STATUS == '0':
+                        listaDusiNaoAdicionados.append(numeroIdentificacaoDusi)
+                        continue
 
-                if BUS_TYPE == '1':
-                    # nao coloco barra tipo PQ no bloco mpc.gen e gencost
-                    continue
+                    QG   = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][barra]['Geracao-Reativa']
+                    QMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][barra]['Geracao-Reativa-Maxima']
+                    QMIN = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][barra]['Geracao-Reativa-Minima']
+                    VG   = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][barra]['Tensao']
 
-                GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
 
-                PG = 0.00
-                QG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa']
-                QMAX = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Maxima']
-                QMIN = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Geracao-Reativa-Minima']
+                    try: VG = str(round((float(VG)/1000),3))
+                    except: VG = '0.000'
 
-                try: QG = float(QG)
-                except: QG = 0.00
+                    try: QG = str(round(float(QG),2))
+                    except: QG = '0.00'
 
-                try: QMAX = float(QMAX)
-                except: QMAX = 0.00
+                    try: QMAX = str(round(float(QMAX),2))
+                    except: QMAX = '0.00'
 
-                try: QMIN = float(QMIN)
-                except: QMIN = 0.00
+                    try: QMIN = str(round(float(QMIN),2))
+                    except: QMIN = '0.00'
 
-                VG = ''
-                MBASE = 100 # 100 MVA Arbitrado mas posso pegar no BLOCO DCTE
-                GEN_STATUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado']
-                PMAX = 0.00
-                PMIN = 0.00
-                PC1 = 0.00
-                PC2 = 0.00
-                QC1MIN = 0.00
-                QC1MAX = 0.00
-                QC2MIN = 0.00
-                QC2MAX = 0.00
-                RAMP_AGC = 0.00
-                RAMP_10 = 0.00
-                RAMP_30 = 0.00
-                RAMP_Q = 0.00
-                APF = 0.00
 
-                # Nova atualizacao, la em cima nem deixo continuar se estado for desligado.
-                # Tratando estado
-                # "L" ou branco => A barra esta ligada;
-                # "D" => A barra esta desligada;
-                GEN_STATUS = '0' if GEN_STATUS == 'D' else '1'
+                    MBASE     = '100' # 100 MVA Arbitrado mas posso pegar no BLOCO DCTE
+                    PMIN      = '0.00'
+                    PC1       = '0.00'
+                    PC2       = '0.00'
+                    QC1MIN    = '0.00'
+                    QC1MAX    = '0.00'
+                    QC2MIN    = '0.00'
+                    QC2MAX    = '0.00'
+                    RAMP_AGC  = '0.00'
+                    RAMP_10   = '0.00'
+                    RAMP_30   = '0.00'
+                    RAMP_Q    = '0.00'
+                    APF       = '0.00'
 
-                VG = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Tensao']
-                
-                VG = float(VG)/1000
 
-                # declarando antes do laco for as variaveis de geracao caso nao entre no if que elas sao usadas
-                geracaoUsinaHidraulica = 0.00
-                geracaoMaximaUsinaHidraulica = 0.00
-                geracaoMinimaUsinaHidraulica = 0.00
-                geracaoUsinaTermoeletrica = 0.00
-                geracaoMaximaUsinaTermoeletrica = 0.00
-                geracaoMinimaUsinaTermoeletrica = 0.00
-                
-                ### MPC GENCOST ####
-                custoUsinaHidraulica = 0.00
-                custoUsinaTermoeletrica = 0.00
-                CVU = 0.00
-                ####
+                    objeto = {
+                        'unidade'    : unidade,
+                        'gen_unid'   : unidade,
+                        'barra'      : barra,
+                        'grupo'      : grupo,
+                        'mbase'      : MBASE,
+                        'pmin'       : PMIN,
+                        'pc1'        : PC1,
+                        'pc2'        : PC2,
+                        'qc1min'     : QC1MIN,
+                        'qc1max'     : QC1MAX,
+                        'qc2min'     : QC2MIN,
+                        'qc2max'     : QC2MAX,
+                        'ramp_agc'   : RAMP_AGC,
+                        'ramp_10'    : RAMP_10,
+                        'ramp_30'    : RAMP_30,
+                        'ramp_q'     : RAMP_Q,
+                        'apf'        : APF,
+                        'qg'         : QG,
+                        'vg'         : VG,
+                        'qmax'       : QMAX,
+                        'qmin'       : QMIN,
+                        'gen_status' : GEN_STATUS,
+                        'bus_type'   : BUS_TYPE,
+                        'gen_id'     : numeroCadastroUsina
+                    }
 
-                ### MPC GENNAME ####
-                TIPO = '-'
-                ####
+                    # preciso segregar o bloco dusi entre H e T
 
-                for chaveNumeroBarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
-                    
-                    # talvez alterar o for acima por if GEN_BUS in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
-                    if(chaveNumeroBarra == GEN_BUS):
-                        
-                        # Nome incorreto. precisa ser alterado para o que esta contido dentro de pdo_term e pdo_hidr.
-                        # Elevatoria nao vai atualizar, ja que nao trato tipo E... pegarah valores padroes 0.00
-                        # NOME_USINA_CORRETO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Nome-Usina']
-                        
-                        # TIPO
-                        TIPO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Mnemonico-Identificacao']
-                        numeroCadastroUsina = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][chaveNumeroBarra]['Numero-Cadastro-Usina']
-                        
-                        # Nao somar H com T. dependendo do tipo entra num dos blocos abaixo...
-                        # No momento verificado que nao ha injecao na mesma barra proveniente de T e H, no futuro pode mudar...
-                        if TIPO == 'H':
-                            for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
-                                if numeroCadastroUsina == self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Numero-Cadastro-Usina']:
-                                    geracaoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-MW']
-                                    geracaoMaximaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Maxima-MW']
-                                    geracaoMinimaUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Geracao-Minima-MW']
-                                    custoUsinaHidraulica = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Vagua-MWh']
+                    # bloco dusi H
+                    # preciso segregar por numero de cadastro da usina, por exemplo:
+                    # chave -> numero de cadastro da usina,
+                    # valor -> conjunto de dicionarios contendo informacoes pertinentes para cada usina que tenha o mesmo numero de cadastro de usina
+                    # Cada numeroIdentificacaoDusi irei considerar como um gerador nas matrizes.
+                    # A chave mais externa tem o numero de cadastro porque é mais facil de iterar os arquivos de H e T.
 
-                                    try: geracaoUsinaHidraulica = float(geracaoUsinaHidraulica)
-                                    except: geracaoUsinaHidraulica == 0.0
+                    # 'H' : {
+                    #   'numeroCadastroUsina': {...},
+                    #   '173': {
+                    #       'numeroIdentificacaoDusi' : {....},
+                    #       '4': {'barra': '5030', 'grupo': '1', 'unid': '2',},
+                    #       '5': {'barra': '5032', 'grupo': '1', 'unid': '2',},
+                    #   }
+                    # }
 
-                                    try: geracaoMaximaUsinaHidraulica = float(geracaoMaximaUsinaHidraulica)
-                                    except: geracaoMaximaUsinaHidraulica = 0.0
 
-                                    try: geracaoMinimaUsinaHidraulica = float(geracaoMinimaUsinaHidraulica)
-                                    except: geracaoMinimaUsinaHidraulica = 0.0
+                    # 'T' : {
+                    #   'numeroCadastroUsina': {...},
+                    #   '201': {
+                    #       'numeroIdentificacaoDusi' : {....},
+                    #       '232': {'barra': '8646', 'grupo': '1', 'unidade': '3',},
+                    #       '233': {'barra': '8646', 'grupo': '1', 'unidade': '4',},
+                    #       '234': {'barra': '8653', 'grupo': '1', 'unidade': '1',},
+                    #       '235': {'barra': '8653', 'grupo': '1', 'unidade': '2',},
+                    #   }
+                    # }
 
-                                    try: custoUsinaHidraulica = float(custoUsinaHidraulica)
-                                    except: custoUsinaHidraulica = 0.0
 
-                                    PG = geracaoUsinaHidraulica
-                                    PMAX = geracaoMaximaUsinaHidraulica
-                                    PMIN = geracaoMinimaUsinaHidraulica
-                                    CVU = custoUsinaHidraulica
-                        elif TIPO == 'T':
-                            for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
-                                if numeroCadastroUsina == self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Numero-Cadastro-Usina']:
-                                    geracaoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-MW']
-                                    geracaoMaximaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Maxima-MW']
-                                    geracaoMinimaUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Geracao-Minima-MW']
-                                    custoUsinaTermoeletrica = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Custo-Linear-MWh']
+                    if mnemonico == 'H':
+                        if numeroCadastroUsina not in self.mpcGen['H']:
+                            self.mpcGen['H'][numeroCadastroUsina] = {}
+                        self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi] = objeto
+                    elif mnemonico == 'T':
+                        # apenas hidraulica possui grupo, fixo 1 para grupo de termica.
+                        objeto['grupo'] = '1'
+                        if numeroCadastroUsina not in self.mpcGen['T']:
+                            self.mpcGen['T'][numeroCadastroUsina] = {}
+                        self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi] = objeto
+                    else:
+                        # soh uso T e H
+                        continue
 
-                                    try: geracaoUsinaTermoeletrica = float(geracaoUsinaTermoeletrica)
-                                    except: geracaoUsinaTermoeletrica == 0.0
-                                    
-                                    try: geracaoMaximaUsinaTermoeletrica = float(geracaoMaximaUsinaTermoeletrica)
-                                    except: geracaoMaximaUsinaTermoeletrica = 0.0
 
-                                    try: geracaoMinimaUsinaTermoeletrica = float(geracaoMinimaUsinaTermoeletrica)
-                                    except: geracaoMinimaUsinaHidraulica = 0.0
 
-                                    try: custoUsinaTermoeletrica = float(custoUsinaTermoeletrica)
-                                    except: custoUsinaTermoeletrica = 0.0
+                    # BLOCO self.mpcGen['T']
 
-                                    PG = geracaoUsinaTermoeletrica
-                                    PMAX = geracaoMaximaUsinaTermoeletrica
-                                    PMIN = geracaoMinimaUsinaTermoeletrica
-                                    CVU = custoUsinaTermoeletrica
-                        else:
-                            # Aqui pode conter E pego no bloco dusi (elevatoria) nao considerarei.
+                    # 'T' : {
+                    #   'numeroCadastroUsina': {...},
+                    #   '201': {
+                    #       'numeroIdentificacaoDusi' : {....},
+                    #       '232': {'barra': '8646', 'grupo': '1', 'unid': '3',},
+                    #       '233': {'barra': '8646', 'grupo': '1', 'unid': '4',},
+                    #       '234': {'barra': '8653', 'grupo': '1', 'unid': '1',},
+                    #       '235': {'barra': '8653', 'grupo': '1', 'unid': '2',},
+                    #   }
+                    # }
+
+                    # BLOCO self.informacoesArquivosUsinas.infoUsinaTermoeletrica
+                    # for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica
+                            # 201 : {
+                            #     1: {...},
+                            #     2: {...},
+                            #     3: {...},
+                            #     4: {...},
+                            # },
+                            # numeroCadastroUsina : {
+                            #     unidade: {...},
+                            # }
+
+            # criar um deepcopy para o self.mpcGen
+            mpcGen = deepcopy(self.mpcGen)
+            # PERCORRER mpcgen mas alterar self.mpcGen.
+            dusiRemovidas = {}
+            for numeroCadastroUsina in mpcGen['T']:
+                for numeroIdentificacaoDusi in mpcGen['T'][numeroCadastroUsina]:
+                    unid = mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]['unidade']
+
+                    # Se a unidade nao existir no meu bloco de infoUsinaT deleto do meu mpcgen
+                    if unid not in self.informacoesArquivosUsinas.infoUsinaTermoeletrica[numeroCadastroUsina]:
+                        del self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]
+                        dusiRemovidas[numeroIdentificacaoDusi] =  {'TIPO': 'T', 'MOTIVO': 'NAO SE ENCONTRA NO PDO_TERM'}
+                        continue
+
+                    try:
+                        ESTADO = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[numeroCadastroUsina][unid]['Estado']
+                    except Exception as error:
+                        print('[montandoEstruturaMpcGeneGenaddNova]' + str(error))
+                        sys.exit()
+
+                        # TODO: feito
+                        # tem dois bloco dusi com numero cadastro 63, unid 1 e 2, e em pdo term soh tem uma unidade, inserir tratativa de 'in' pra nao quebrar
+                        # se nao achar no pdo term excluir do bloco self mpc gen.
+
+
+                    # Coleto a informacao do estado da unidade com base no que armazenei 'L/D'
+                    # Se identificar que a unidade para o determinado numero de cadastro de usina ta desligada, removo ela do meu dicionario principal mpcGen
+                    if ESTADO == 'D':
+                        del self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]
+                        dusiRemovidas[numeroIdentificacaoDusi] =  {'TIPO': 'T', 'MOTIVO': 'DESLIGADA'}
+                    else:
+                        # Coleto informacoes da unidade referente ao numero de cadastro da usina
+                        PG       = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[numeroCadastroUsina][unid]['Geracao-MW']
+                        PMAX     = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[numeroCadastroUsina][unid]['Capacidade-MW']
+                        PMIN     = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[numeroCadastroUsina][unid]['Geracao-Minima-MW']
+                        CVU      = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[numeroCadastroUsina][unid]['Custo']
+                        NOME     = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[numeroCadastroUsina][unid]['Usina']
+                        SISTEMA  = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[numeroCadastroUsina][unid]['Sistema']
+
+                        try: PG = float(PG)
+                        except: PG = 0.00
+
+                        try: PMAX = float(PMAX)
+                        except: PMAX = 0.00
+
+                        try: PMIN = float(PMIN)
+                        except: PMIN = 0.00
+
+                        # Armazeno as informacoes dentro do meu dicionario principal mpcGen para posterior montagem de MPCGEN GENCOST E GENADD
+                        self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]['pg']       = str(round(PG,2))
+                        self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]['pmax']     = str(round(PMAX,2))
+                        self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]['pmin']     = str(round(PMIN,2))
+                        self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]['cvu']      = CVU
+                        self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]['nome']     = NOME
+                        self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]['sistema']  = SISTEMA
+                        self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]['gen_type'] = 'T'
+
+                        self.mpcGen['TOTAL'][numeroIdentificacaoDusi] = self.mpcGen['T'][numeroCadastroUsina][numeroIdentificacaoDusi]
+
+            # vira ->>>>>>
+            # Numero de cadastro de usinas vazios significa que todos os numerosdusi todas unidades estavam vazios.
+            # Remover numerodecadastro vazios, eles nao irao fazer parte das matrizes finais gen gencost e genadd.
+            # {
+            #     '1': {},
+            #     '13': {
+            #         '231': {...}
+            #     },
+            #     '201': {
+            #         '232': {...},
+            #         '233': {...},
+            #         '234': {...},
+            #         '235': {...}
+            #     },
+            # }
+
+            # Comecar a preencher self.mpcGen['H']
+            for numeroCadastroUsina in mpcGen['H']:
+                for numeroIdentificacaoDusi in mpcGen['H'][numeroCadastroUsina]:
+
+                    unid = mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['unidade']
+                    grupo = mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['grupo']
+
+                    # Se eu nao encontrar o grupo nas informacoes de infoUsinaHidraulica para determinado numero de cadastro de usina,
+                    # deleto no info mpc gen H a chave e valor para o numero de identificacao dusi.
+                    if not grupo in self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina]:
+                        del self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]
+                        continue # vai para o proximo numero de identificacao dusi do cadastro da usina.
+
+                    # Verifico o numero de unidades que eu armazenei no infoUsinaHidraulica -> numeroCadastroUsina -> grupo
+                    numeroUnidades = len(self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina][grupo])
+                    # Se nao encontrar unidades deleto tambem no info mpc gen H
+                    if numeroUnidades == 0:
+                        del self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]
+                        continue # vai para o proximo numero de identificacao dusi do cadastro da usina.
+
+
+                    PG   = 0.00 # concateno
+                    PMAX = 0.00
+                    PMIN = 0.00
+                    CVU  = 0.00
+                    NOME  = ''
+                    contadorDeUnidades = 0
+                    unidadesPercorridas = []
+                    unidadesPercorridasDesligadas = []
+                    unidadesPercorridasLigadas = []
+
+
+                    for unidade in  self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina][grupo]:
+                        # Se meu contador atingir o numero de unidades que tinha que percorrer termino o for.
+                        if contadorDeUnidades == unid: break
+
+                        # Marco qual unidade estou percorrendo para deletar depois.
+                        unidadesPercorridas.append(unidade)
+
+                        try:
+                            ESTADO = self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina][grupo][unidade]['Estado']
+                        except Exception as error:
+                            print('[montandoEstruturaMpcGeneGenaddNova]' + str(error))
+                            sys.exit()
+
+                        if ESTADO == 'D':
+                            # Se o estado da unidade for desligado eu nao armazeno informacoes.
+                            # Ela eh considerada uma unidade percorrida mas registro que ela estava desligada.
+                            contadorDeUnidades += 1
+                            unidadesPercorridasDesligadas.append(unidade)
                             continue
+                        else:
+                            # Coleto informacoes da unidade referente ao numero de cadastro da usina e grupo
+                            # PG concateno o pg de cada unidade ligada
+                            PG   += float(self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina][grupo][unidade]['Geracao-MW'])
+                            # Sobrescrevo toda vez a cada iteracao o nome mas nao tem problema, todo numero de cadastro mantem o mesmo nome
+                            NOME = self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina][grupo][unidade]['Usina']
+                            # Sobrescrevo toda vez a cada iteracao o sistema mas nao tem problema, todo numero de cadastro mantem o mesmo sistema
+                            SISTEMA = self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina][grupo][unidade]['Sistema']
+                            # PMAX concateno as capacidades
+                            PMAX += float(self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina][grupo][unidade]['Capacidade-MW'])
+                            unidadesPercorridasLigadas.append(unidade)
 
-                # chavebarra = 'barra-10', 'barra-50'....
-                self.mpcGen[chavebarra] = {
-                'GEN_BUS': GEN_BUS,
-                'PG': str(round(PG,2)),
-                'QG': str(round(QG,2)),
-                'QMAX': str(round(QMAX,2)),
-                'QMIN': str(round(QMIN,2)),
-                'VG': str(round(VG,3)),
-                'MBASE': MBASE,
-                'GEN_STATUS': GEN_STATUS,
-                'PMAX': str(round(PMAX,2)),
-                'PMIN': str(round(PMIN,2)),
-                'PC1': PC1,
-                'PC2': PC2,
-                'QC1MIN': QC1MIN,
-                'QC1MAX': QC1MAX ,
-                'QC2MIN': QC2MIN ,
-                'QC2MAX': QC2MAX,
-                'RAMP_AGC': RAMP_AGC,
-                'RAMP_10': RAMP_10,
-                'RAMP_30': RAMP_30,
-                'RAMP_Q': RAMP_Q,
-                'APF': APF,
-                'CVU': CVU, # Usado no mpc gencost
-                }
+                        contadorDeUnidades += 1
+
+                    # Se eu identificar que todas unidades que eu passei estavam desligadas, posso deletar minha estrutura dusi.
+                    # Se pg igual a 0 porque todas unidades estavam desligadas eu deleto o numero dusi
+                    if len(unidadesPercorridas) == len(unidadesPercorridasDesligadas):
+                        del self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]
+                        continue
+
+                    # Se pg igual a 0 mas os elementos nao estavam desligadas eu nao deleto o numero dusi.
+                    # Se todos elementos foram zero ja deletei o elemento dusi.
+                    # Aqui so insiro o PG.
+                    # Pendente inserir outros dados..
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['pg']        = str(round(PG,2))
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['pmax']      = str(round(PMAX,2))
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['pmin']      = str(round(PMIN,2))
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['cvu']       = str(CVU)
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['nome']      = NOME
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['sistema']   = SISTEMA
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['gen_unid']  = ','.join(unidadesPercorridasLigadas)
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['gen_id']    = numeroCadastroUsina
+                    self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]['gen_type']  = 'H'
+
+                    self.mpcGen['TOTAL'][numeroIdentificacaoDusi] = self.mpcGen['H'][numeroCadastroUsina][numeroIdentificacaoDusi]
+                    # Zero novamente o contador de unidades
+                    contadorDeUnidades = 0
+                    # Agora eu removo as unidades percorridas para na proxima iteracao elas nao estarem presente novamente.
+                    for unidadeDeletar in unidadesPercorridas:
+                        del self.informacoesArquivosUsinas.infoUsinaHidraulica[numeroCadastroUsina][grupo][unidadeDeletar]
+
+
+                        # info mpc gen H
+                        # 'H' : {
+                        #   'numeroCadastroUsina': {...},
+                        #   '174': {
+                        #       'numeroIdentificacaoDusi' : {....},
+                        #       '217': {'barra': '6555', 'grupo': '1', 'unid': '3',},
+                        #       '218': {'barra': '6556', 'grupo': '2', 'unid': '1',},
+                        #       '219': {'barra': '6559', 'grupo': '2', 'unid': '1',},
+                        #       '220': {'barra': '6559', 'grupo': '3', 'unid': '1',},
+                        #       '221': {'barra': '6559', 'grupo': '4', 'unid': '1',},
+                        #       '222': {'barra': '6559', 'grupo': '4', 'unid': '1',},
+                        #       '223': {'barra': '6559', 'grupo': '4', 'unid': '1',},
+                        #       '224': {'barra': '6559', 'grupo': '5', 'unid': '2',},
+                        #       '225': {'barra': '6559', 'grupo': '5', 'unid': '2',},                                   
+                        #   }
+                        # }
+
+
+                        # info usina HIDR pdo_h
+                        # numeroCadastroUsina -> grupo -> unidade
+                        # 174 : {
+                        #     1: {
+                        #       1: {...},
+                        #       2: {...},
+                        #       3: {...},
+                        #     },
+                        #     2: {
+                        #       1: {...},
+                        #       2: {...},
+                        #     },
+                        #     3: {
+                        #       1: {...},
+                        #     },
+                        #     4: {
+                        #       1: {...},
+                        #       2: {...},
+                        #       3: {...},
+                        #     },
+                        #     5: {
+                        #       1: {...},
+                        #       2: {...},
+                        #       3: {...},
+                        #       4: {...},
+                        #     },
+                        #     99: {
+                        #       99: {...},
+                        #     },                               
+                        # }
 
         # MpcGen poderia ser aproveitado para montar MpcBusAdd uma vez que ele realiza os mesmos lacos por dbar.
         # Aproveitar MpcGen seria uma esforco computacional menor, como o algoritmo nao precisa ficar atendendo solicitacoes em tempo real nao vejo motivos para nao organizar outro bloco de construcao da estrutura busadd.
         def montandoEstruturaMpcBusAdd(self):
             self.mpcBusAdd = {}
-            for chavebarra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
-                if self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Estado'] == 'D':
+            for barra in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase']:
+                if self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][barra]['Estado'] == 'D':
                     # Barras em Estado desligado nao utilizo no mpcGen nem aqui em mpcBusAdd
                     # A principio barras desligadas nao estao contidas no arquivo pdo_cmo.dat
                     continue
-                
+
                 BUS_NAME = ''
                 BUS_SUBS = ''
                 BUS_CMO = ''
@@ -455,7 +687,7 @@ class tratamentoGeralArquivos:
                 GEN_TYPE = ''
                 
                 # numero da barra, 260 por exemplo.
-                GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Numero']
+                GEN_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][barra]['Numero']
 
                 if GEN_BUS in self.informacoesCmoBarras.infoCmo:
                     if 'Nome-Barra' in self.informacoesCmoBarras.infoCmo[GEN_BUS] and \
@@ -467,54 +699,58 @@ class tratamentoGeralArquivos:
                     else:
                         BUS_NAME = '-'
                         BUS_SUBS = '-'
-                        BUS_CMO = 0.00
+                        BUS_CMO = '0.00'
                 else:
                         BUS_NAME = '-'
                         BUS_SUBS = '-'
-                        BUS_CMO = 0.00
+                        BUS_CMO = '0.00'
 
                 try: float(BUS_CMO)
-                except: BUS_CMO = 0.00
+                except: BUS_CMO = '0.00'
 
-            # preciso pegar o nome do gen_type e gen_name
-            # verificar inicialmente se a barra ta no dusi, se tiver pego tipo e procuro nos resultados de T e H
-            # se ela nao estiver tento ver se esta nos resultados de Eolica.
+                # preciso pegar gen_type e gen_name
+                # verificar inicialmente se a barra ta no dusi, se tiver pego tipo e procuro nos resultados de T e H
+                # se ela nao estiver tento ver se esta nos resultados de Eolica.
 
-                if GEN_BUS in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase']:
-                    NOME_USINA_CORRETO = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][GEN_BUS]['Nome-Usina']
-                    GEN_TYPE = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][GEN_BUS]['Mnemonico-Identificacao']
-                    numeroCadastroUsina = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dusiInfoBase'][GEN_BUS]['Numero-Cadastro-Usina']
 
-                    if GEN_TYPE == 'H':
-                        for usina in self.informacoesArquivosUsinas.infoUsinaHidraulica:
-                            if numeroCadastroUsina == self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Numero-Cadastro-Usina']:
-                                NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaHidraulica[usina]['Usina']
-                    elif GEN_TYPE == 'T':
-                        for usina in self.informacoesArquivosUsinas.infoUsinaTermoeletrica:
-                            if numeroCadastroUsina == self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Numero-Cadastro-Usina']:
-                                NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaTermoeletrica[usina]['Usina']
-                    else:
-                        # Nao guardo mais nada diferente de T e E nas informacoes de Dusi, entao nao deve cair aqui.
-                        pass
+                # varrendo
+                # self.mpcGen['H']
+                EncontreiGEN_BUS = False
+                if not EncontreiGEN_BUS:
+                    for numeroCadastroUsina in self.mpcGen['H']:
+                        for NumeroIdentificacaoDusi in self.mpcGen['H'][numeroCadastroUsina]:
+                            if GEN_BUS == self.mpcGen['H'][numeroCadastroUsina][NumeroIdentificacaoDusi]['barra']:
+                                NOME_USINA_CORRETO = self.mpcGen['H'][numeroCadastroUsina][NumeroIdentificacaoDusi]['nome']
+                                GEN_TYPE = self.mpcGen['H'][numeroCadastroUsina][NumeroIdentificacaoDusi]['gen_type'] # 'H'
+                                EncontreiGEN_BUS = True
+                #varrendo
+                # self.mpcGen['T']
+                if not EncontreiGEN_BUS:
+                    for numeroCadastroUsina in self.mpcGen['T']:
+                        for NumeroIdentificacaoDusi in self.mpcGen['T'][numeroCadastroUsina]:
+                            if GEN_BUS == self.mpcGen['T'][numeroCadastroUsina][NumeroIdentificacaoDusi]['barra']:
+                                NOME_USINA_CORRETO = self.mpcGen['T'][numeroCadastroUsina][NumeroIdentificacaoDusi]['nome']
+                                GEN_TYPE = self.mpcGen['T'][numeroCadastroUsina][NumeroIdentificacaoDusi]['gen_type'] # 'T'
+                                EncontreiGEN_BUS = True
 
-                elif GEN_BUS in self.informacoesArquivosUsinas.infoUsinaEolica:
-                    GEN_TYPE = self.informacoesArquivosUsinas.infoUsinaEolica[GEN_BUS]['Tipo'] # fixado em EO
-                    NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaEolica[GEN_BUS]['Nome']
-                else:
-                    # barra sem usina EO, T e H
-                    # print('Barra sem usina: '+ GEN_BUS)
-                    pass
-                    # talvez criar um continue, nem precisa entrar no busadd. averiguar
+
+                if not EncontreiGEN_BUS:
+                    if GEN_BUS in self.informacoesArquivosUsinas.infoUsinaEolica:
+                        GEN_TYPE = self.informacoesArquivosUsinas.infoUsinaEolica[GEN_BUS]['Tipo'] # fixado em EO
+                        NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaEolica[GEN_BUS]['Nome']
+                        ncontreiGEN_BUS = True
+
+
 
                 if not GEN_TYPE: GEN_TYPE = '-'
                 if not NOME_USINA_CORRETO: NOME_USINA_CORRETO = '-'
 
-                # chavebarra = 'barra-10', 'barra-50'....
-                self.mpcBusAdd[chavebarra] = {
-                'BUS_I': GEN_BUS,
+                # barra = '10', '50'....
+                self.mpcBusAdd[barra] = {
+                'BUS_I'   : GEN_BUS,
                 'BUS_NAME': BUS_NAME,
                 'BUS_SUBS': BUS_SUBS,
-                'BUS_CMO': BUS_CMO,
+                'BUS_CMO' : str(BUS_CMO),
                 'GEN_TYPE': GEN_TYPE,
                 'GEN_NAME': NOME_USINA_CORRETO,
                 }
@@ -616,7 +852,19 @@ class tratamentoGeralArquivos:
             'apf'      +
             '\n')
             self.arquivoGeneratorData += 'mpc.gen = [\n'
-            
+
+            self.GeneratorAdditionalData = ''
+            self.GeneratorAdditionalData += '%% generator additional data\n'
+            # self.GeneratorAdditionalData += '%	bus_i	gen_name	gen_type	gen_unid	gen_group	gen_id
+            self.GeneratorAdditionalData += ('%	' + 	retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_i',16) +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_name',16)       +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_type',16)       +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_id',16)         +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_group',16)      +
+            'gen_unid'      +
+            '\n')
+            self.GeneratorAdditionalData += 'mpc.genadd = [\n'
+
             self.arquivoGeneratorCostData = ''
             self.arquivoGeneratorCostData += '%%----- OPF Data -----%%\n'
             self.arquivoGeneratorCostData += '%% generator cost data\n'
@@ -636,47 +884,60 @@ class tratamentoGeralArquivos:
             )
             self.arquivoAdditionalData += 'mpc.busadd = {\n'
 
-            for chavebarra in self.mpcGen:
+            for numeroDusi in self.mpcGen['TOTAL']:
 
                 # mpcgen
                 self.arquivoGeneratorData += (
                     doisTabEspace +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_BUS']),10)                   +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['PG'])),10)         + 
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['QG'])),10)         +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['QMAX'])),10)       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['QMIN'])),10)       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['VG']),10)                        +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['MBASE']),10)                     +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['GEN_STATUS']),10)                +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['PMAX'])),10)       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen[chavebarra]['PMIN'])),10)       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['PC1']),10)                       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['PC2']),10)                       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['QC1MIN']),10)                    +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['QC1MAX']),10)                    +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['QC2MIN']),10)                    +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['QC2MAX']),10)                    +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_AGC']),10)                  +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_10']),10)                   +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_30']),10)                   +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['RAMP_Q']),10)                    +
-                    str(self.mpcGen[chavebarra]['APF'])  +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['barra']),10)                     +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['pg'])),10)         +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['qg'])),10)         +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['qmax'])),10)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['qmin'])),10)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['vg']),10)                        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['mbase']),10)                     +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['gen_status']),10)                +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['pmax'])),10)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['pmin'])),10)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['pc1']),10)                       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['pc2']),10)                       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['qc1min']),10)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['qc1max']),10)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['qc2min']),10)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['qc2max']),10)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['ramp_agc']),10)                  +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['ramp_10']),10)                   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['ramp_30']),10)                   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['ramp_q']),10)                    +
+                    str(self.mpcGen['TOTAL'][numeroDusi]['apf'])  +
                     ';\n'
                     )
                 
                 # mpcgencost
                 self.arquivoGeneratorCostData += (
                     doisTabEspace + 
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto('2',10)                                 +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto('0',10)                                 +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto('0',10)                                 +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto('2',10)                                 +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen[chavebarra]['CVU']),10) + 
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto('2',10)                                          +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto('0',10)                                          +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto('0',10)                                          +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto('2',10)                                          +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['cvu']),10) +
                     '0' +
                     ';\n'
                     )
                 
+                # mpcgen
+                self.GeneratorAdditionalData += (
+                    doisTabEspace +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['barra']),16)             +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen['TOTAL'][numeroDusi]['nome'])),16)        +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(repr(str(self.mpcGen['TOTAL'][numeroDusi]['gen_type'])),16)    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['gen_id']),16)            +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto((str(self.mpcGen['TOTAL'][numeroDusi]['grupo'])),16)           +
+                    repr(str(self.mpcGen['TOTAL'][numeroDusi]['gen_unid']))  +
+                    ';\n'
+                    )
+
+
             for chavebarra in self.mpcBusAdd:
                 # mpcbusadd
                 self.arquivoAdditionalData += (
@@ -695,6 +956,9 @@ class tratamentoGeralArquivos:
 
             self.arquivoGeneratorCostData += '];\n'
             self.arquivoGeneratorCostData += '%\n'
+
+            self.GeneratorAdditionalData += '];\n'
+            self.GeneratorAdditionalData += '%\n'
 
             self.arquivoAdditionalData += '};\n'
             self.arquivoAdditionalData += '%\n'
@@ -753,6 +1017,7 @@ class tratamentoGeralArquivos:
                 arquivoMatPower.write(self.arquivoGeneratorData)
                 arquivoMatPower.write(self.arquivoBranchData)
                 arquivoMatPower.write(self.arquivoGeneratorCostData)
+                arquivoMatPower.write(self.GeneratorAdditionalData)
                 arquivoMatPower.write(self.arquivoAdditionalData)
 
 # Funcao responsavel por retornar uma string com n caracteres preenchidos.

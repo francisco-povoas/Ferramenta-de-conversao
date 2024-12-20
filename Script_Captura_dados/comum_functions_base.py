@@ -90,15 +90,15 @@ def getdgbtInformacoesDaLinha(line):
 def getdusiInformacoesDaLinha(line):
     try:
         dusiInfoLine = {
-            'Numero-Identificacao-Elemento-DUSI': line[0:4].strip(),
+            'Numero-Identificacao-Elemento-DUSI': line[0:4].strip(), # (No)
             'Operacao': line[5].strip(),
             'Numero-Barra-Elemento-Conectado': line[6:11].strip(),
             'Nome-Usina': line[12:24].strip(),
-            'Numero-Unidades-Geradoras-Elemento': line[26:29].strip(),
+            'Numero-Unidades-Geradoras-Elemento': line[26:29].strip(), # ## Unid T H
             'Geracao-Ativa-Minima-Cada-Unidade-Geradora-Elemento': line[32:38].strip(),
             'Geracao-Ativa-Maxima-Cada-Unidade-Geradora-Elemento': line[38:44].strip(),
             'Numero-Cadastro-Usina': line[72:76].strip(),
-            'Numero-Grupo-Pertencimento-Usina': line[76].strip(),
+            'Numero-Grupo-Pertencimento-Usina': line[76].strip(), # CONJ H
             'Mnemonico-Identificacao': line[77].strip(),
         }
     except Exception as error:
@@ -184,7 +184,7 @@ class coletaBlocosArquivoBase:
                     if error: sys.exit()
                     
                     numero = dbarInfoLine['Numero']
-                    dbarInfoBase['barra-'+numero] = dbarInfoLine
+                    dbarInfoBase[numero] = dbarInfoLine
 
                 # Tratamento bloco DLIN 
                 # Bloco contendo caracteristicas dos circuitos (linhas de transmissao) da rede eletrica.
@@ -256,7 +256,7 @@ class coletaBlocosArquivoBase:
                     if ((dusiInfoLine['Mnemonico-Identificacao'] != 'H') and (dusiInfoLine['Mnemonico-Identificacao'] != 'T')):
                         continue
                     
-                    numeroIdentificacaoDusi = dusiInfoLine['Numero-Barra-Elemento-Conectado']
+                    numeroIdentificacaoDusi = dusiInfoLine['Numero-Identificacao-Elemento-DUSI'] # 1, 2, 3, 4, 5...
                     dusiInfoBase[numeroIdentificacaoDusi] = dusiInfoLine
 
                 # Tratamento bloco DARE

@@ -10,11 +10,14 @@ def getusinaHInformacoesDalinha(linearray):
             'Numero-Cadastro-Usina': linearray[2].strip(),
             'Usina': linearray[3].strip(),
             'Sistema': linearray[4].strip(),
+            'Conj': linearray[5].strip(),
+            'Unid': linearray[6].strip(),
             'Vagua-MWh': linearray[7].strip(),
             'Geracao-MW':linearray[32].strip(),
             'Geracao-Maxima-MW':linearray[33].strip(),
             'Geracao-Minima-MW': '0.00', # Valor arbitrado, Nao possui informacao no arquivo
             'Capacidade-MW':linearray[34].strip(),
+            'Estado':linearray[35].strip(),
             'Tipo': 'H',
         }
     except Exception as error:
@@ -31,11 +34,14 @@ def getusinaTInformacoesDalinha(linearray):
             'Patamar': linearray[1].strip(),
             'Numero-Cadastro-Usina': linearray[2].strip(),
             'Usina': linearray[3].strip(),
+            'Unid': linearray[4].strip(),
             'Sistema': linearray[5].strip(),
             'Geracao-MW':linearray[6].strip(),
             'Geracao-Minima-MW': linearray[7].strip(),
             'Geracao-Maxima-MW':linearray[8].strip(),
             'Capacidade-MW':linearray[9].strip(),
+            'Estado':linearray[10].strip(),
+            'Custo':linearray[11].strip(),
             'Tipo': 'T',
         }
     except Exception as error:
@@ -103,13 +109,61 @@ class coletaDadosUsinas:
                         infoLineArray = str(line).split(';')
                         infoLineArray.pop() # remove ultimo indice nao aproveitavel
 
-                        if '99' in infoLineArray[5]: # verificando se CONJ == 99
-                            # Ex usinaInfoHidraulicaLine = {'Estagio': '1', 'Patamar': 'LEVE', 'Numero-Cadastro-Usina': '260', 'Usina': 'PIMENTAL', 'Sistema': 'N', 'Geracao-MW': '79.34', 'Geracao-Maxima-MW': '233.10', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '233.10'}, 'FOZ R. CLARO': {'Estagio': '1', 'Patamar': 'LEVE', 'Usina': 'FOZ R. CLARO', 'Sistema': 'SE', 'Geracao-MW': '6.92', 'Geracao-Maxima-MW': '34.20', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '68.40'}}
-                            usinaInfoHidraulicaLine, error = getusinaHInformacoesDalinha(infoLineArray)
-                            if error: sys.exit()
+                        # Ex usinaInfoHidraulicaLine = {'Estagio': '1', 'Patamar': 'LEVE', 'Numero-Cadastro-Usina': '260', 'Usina': 'PIMENTAL', 'Sistema': 'N', 'Geracao-MW': '79.34', 'Geracao-Maxima-MW': '233.10', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '233.10'}, 'FOZ R. CLARO': {'Estagio': '1', 'Patamar': 'LEVE', 'Usina': 'FOZ R. CLARO', 'Sistema': 'SE', 'Geracao-MW': '6.92', 'Geracao-Maxima-MW': '34.20', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '68.40'}}
+                        usinaInfoHidraulicaLine, error = getusinaHInformacoesDalinha(infoLineArray)
+                        if error: sys.exit()
 
-                            usina = usinaInfoHidraulicaLine['Usina']
-                            usinaInfoHidraulica[usina] = usinaInfoHidraulicaLine
+                        numeroCadastroUsina = usinaInfoHidraulicaLine['Numero-Cadastro-Usina']
+                        unidade = usinaInfoHidraulicaLine['Unid']
+                        grupo = usinaInfoHidraulicaLine['Conj']
+
+                        #     usina = usinaInfoHidraulicaLine['Usina']
+                        #     usinaInfoHidraulica[usina] = usinaInfoHidraulicaLine
+
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   1 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;     40.00 ;     -      ;      40.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   1 ;    2  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;     40.00 ;     -      ;      40.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   2 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;     45.45 ;     -      ;      48.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   2 ;    2  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;      0.00 ;     -      ;      48.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   3 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;     49.00 ;     -      ;      49.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   3 ;    2  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;     49.00 ;     -      ;      49.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   3 ;    3  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;     49.00 ;     -      ;      49.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   3 ;    4  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;     49.00 ;     -      ;      49.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   4 ;    1  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;     41.52 ;     -      ;      52.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;   4 ;    2  ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;           ;            ;            ;           ;           ;           ;           ;   1272.00 ;      2.29 ;           ;           ;           ;           ;      0.00 ;     -      ;      52.00 ;  L  ;      0.00 ;           ;
+                        #   1 ;   LEVE ;  7 ; M. DE MORAES ; SE ;  99 ;   99  ;      0.00 ;   1895.19 ;     75.81 ;     78.00 ;      0.14 ;      0.00 ;      0.00 ;    776.00 ;      1.40 ;      0.00 ;      0.00 ;      0.45 ;      0.00 ;      0.60  ;      0.00  ;   1166.44 ;      2.10 ;      0.00 ;      0.00 ;   1170.10 ;      2.11 ;   1170.10 ;      2.11 ;   3192.86 ;      5.75 ;    362.97 ;     476.00 ;     476.00 ;  -  ;      0.00 ;     36.57 ;
+
+                        # 7 : {
+                        #     1: {
+                        #       1: {...},
+                        #       2: {...},
+                        #     },
+                        #     2: {
+                        #       1: {...},
+                        #       2: {...},
+                        #     },
+                        #     3: {
+                        #       1: {...},
+                        #       2: {...},
+                        #       3: {...},
+                        #       4: {...},
+                        #     },
+                        #     4: {
+                        #       1: {...},
+                        #       2: {...},
+                        #     },
+                        #     99: {
+                        #       99: {...},
+                        #     },
+                        # }
+
+                        if numeroCadastroUsina not in usinaInfoHidraulica:
+                            usinaInfoHidraulica[numeroCadastroUsina] = {}
+
+                        if grupo not in usinaInfoHidraulica[numeroCadastroUsina]:
+                            usinaInfoHidraulica[numeroCadastroUsina][grupo] = {}
+
+                        usinaInfoHidraulica[numeroCadastroUsina][grupo][unidade] = usinaInfoHidraulicaLine
+
 
                     elif (periodo > self.estagio):
                         break
@@ -150,22 +204,60 @@ class coletaDadosUsinas:
                         infoLineArray = str(line).split(';')
                         infoLineArray.pop() # remove ultimo indice nao aproveitavel
 
-                        # Capturando CVU $/MWh
-                        if not '99' in infoLineArray[4]:
-                            try: custoLinear = infoLineArray[11]
-                            except: custoLinear = '0.00'
+                        # despreza linha com valor 99
+                        if '99' in infoLineArray[4]:
+                            continue
 
-                        if '99' in infoLineArray[4]: # verificando se Unid == 99
     
-                            # Ex usinaInfoHidraulicaLine = {'Estagio': '1', 'Patamar': 'LEVE', 'Usina': 'PIMENTAL', 'Sistema': 'N', 'Geracao-MW': '79.34', 'Geracao-Maxima-MW': '233.10', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '233.10'}, 'FOZ R. CLARO': {'Estagio': '1', 'Patamar': 'LEVE', 'Usina': 'FOZ R. CLARO', 'Sistema': 'SE', 'Geracao-MW': '6.92', 'Geracao-Maxima-MW': '34.20', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '68.40'}}
-                            usinaInfoTermoeletricaLine, error = getusinaTInformacoesDalinha(infoLineArray)
-                            if error: sys.exit()
+                        # Ex usinaInfoHidraulicaLine = {'Estagio': '1', 'Patamar': 'LEVE', 'Usina': 'PIMENTAL', 'Sistema': 'N', 'Geracao-MW': '79.34', 'Geracao-Maxima-MW': '233.10', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '233.10'}, 'FOZ R. CLARO': {'Estagio': '1', 'Patamar': 'LEVE', 'Usina': 'FOZ R. CLARO', 'Sistema': 'SE', 'Geracao-MW': '6.92', 'Geracao-Maxima-MW': '34.20', 'Geracao-Minima-MW': '0.00', 'Capacidade-MW': '68.40'}}
+                        usinaInfoTermoeletricaLine, error = getusinaTInformacoesDalinha(infoLineArray)
+                        if error: sys.exit()
 
-                            usinaInfoTermoeletricaLine['Custo-Linear-MWh'] = custoLinear
+                        # usinaInfoTermoeletricaLine['Custo-Linear-MWh'] = custoLinear
 
-                            usina = usinaInfoTermoeletricaLine['Usina']
+                        # estado = usinaInfoTermoeletricaLine['Estado']
+                        # so quero unidades Ligadas
+                        # if estado != 'L': continue
 
-                            usinaInfoTermoeletrica[usina] = usinaInfoTermoeletricaLine
+                        numeroCadastroUsina = usinaInfoTermoeletricaLine['Numero-Cadastro-Usina']
+                        unidade = usinaInfoTermoeletricaLine['Unid']
+
+
+                        # 1 ;  LEVE ; 55 ;GLOBAL II    ;  4 ; NE ;      0.00 ;      0.00 ;     69.44 ;      69.44 ;  L  ;   1244.94 ;
+                        # 1 ;  LEVE ; 55 ;GLOBAL II    ;  5 ; NE ;      0.00 ;      0.00 ;     69.44 ;      69.44 ;  L  ;   1244.94 ;
+                        # 1 ;  LEVE ; 55 ;GLOBAL II    ;  6 ; NE ;      0.00 ;      0.00 ;     69.44 ;      69.44 ;  L  ;   1244.94 ;
+                        # 1 ;  LEVE ; 55 ;GLOBAL II    ;  7 ; NE ;      0.00 ;      0.00 ;    114.08 ;     114.08 ;  L  ;   1244.94 ;
+                        # 1 ;  LEVE ; 55 ;GLOBAL II    ;  8 ; NE ;      0.00 ;      0.00 ;    114.08 ;     114.08 ;  L  ;   1244.94 ;
+                        # 1 ;  LEVE ; 55 ;GLOBAL II    ;  9 ; NE ;      0.00 ;      0.00 ;    104.16 ;     104.16 ;  L  ;   1244.94 ;
+                        # 1 ;  LEVE ; 55 ;GLOBAL II    ; 10 ; NE ;      0.00 ;      0.00 ;    114.08 ;     114.08 ;  L  ;   1244.94 ;
+                        # 1 ;  LEVE ; 55 ;GLOBAL II    ; 11 ; NE ;
+
+                        # 55 : {
+                        #     1: {...},
+                        #     2: {...},
+                        #     3: {...},
+                        #     4: {...},
+                        #     5: {...},
+                        #     6: {...},
+                        #     7: {...},
+                        #     8: {...},
+                        #     9: {...},
+                        #     10: {...},
+                        #     11: {...},
+                        # },
+                        # numeroCadastroUsina : {
+                        #     unidade: {...}
+                        # }
+
+
+                        if numeroCadastroUsina not in usinaInfoTermoeletrica:
+                            usinaInfoTermoeletrica[numeroCadastroUsina] = {}
+
+                        usinaInfoTermoeletrica[numeroCadastroUsina][unidade] = usinaInfoTermoeletricaLine
+
+                        # salvamento antigo
+                        # salvo a chave como o numero de cadastro com a unidade.
+                        # usinaInfoTermoeletrica[numeroCadastroUsina+'-'+unidade] = usinaInfoTermoeletricaLine
 
                 if periodo > self.estagio:
                     break        
