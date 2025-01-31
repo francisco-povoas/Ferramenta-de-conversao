@@ -863,7 +863,7 @@ class tratamentoGeralArquivos:
             retornaStringArrumadaParaEscreverComTamanhoCorreto('gen_group',16)      +
             'gen_unid'      +
             '\n')
-            self.GeneratorAdditionalData += 'mpc.genadd = [\n'
+            self.GeneratorAdditionalData += 'mpc.genadd = {\n'
 
             self.arquivoGeneratorCostData = ''
             self.arquivoGeneratorCostData += '%%----- OPF Data -----%%\n'
@@ -957,7 +957,7 @@ class tratamentoGeralArquivos:
             self.arquivoGeneratorCostData += '];\n'
             self.arquivoGeneratorCostData += '%\n'
 
-            self.GeneratorAdditionalData += '];\n'
+            self.GeneratorAdditionalData += '};\n'
             self.GeneratorAdditionalData += '%\n'
 
             self.arquivoAdditionalData += '};\n'
