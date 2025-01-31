@@ -26372,7 +26372,7 @@ mpc.gencost = [
 %
 %% generator additional data
 %	bus_i           gen_name        gen_type        gen_id          gen_group       gen_unid
-mpc.genadd = [
+mpc.genadd = {
    11              'ANGRA 2'       'T'             13              1               '1';
    8646            'APARECIDA'     'T'             201             1               '3';
    8646            'APARECIDA'     'T'             201             1               '4';
@@ -26850,7 +26850,7 @@ mpc.genadd = [
    5022            'P.AFONSO 4'    'H'             175             1               '1,2,3,4,5';
    305             'VOLTA GRANDE'  'H'             11              1               '1,2,3';
    5061            'XINGO'         'H'             178             1               '1,2,3,4,5,6';
-];
+};
 %
 %% bus additional data
 %	bus_i           bus_name        bus_subs        bus_cmo         gen_type        gen_name
