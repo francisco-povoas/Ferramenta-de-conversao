@@ -1,5 +1,5 @@
 import sys
-from comum_functions import defineEstagio
+from comum_functions import defineEstagio, bubble_sort
 from comum_functions_base import *
 from comum_functions_patamar import *
 from comum_functions_usina import *
@@ -884,7 +884,47 @@ class tratamentoGeralArquivos:
             )
             self.arquivoAdditionalData += 'mpc.busadd = {\n'
 
+            # Preciso montar o mpc.gen e mpc.genadd com as barras em ordem crescente
+            # Problema que a estrutura do self.mpcGen['TOTAL'] nao irah entregar ordenada as informacoes.
+            # self.mpcGen['TOTAL'] contem as chaves de numeroDusi e dentro de cada chave corresponde ao numeroDusi ha a informacao da barra associada
+            # Aqui sera feito o seguinte para entregar self.arquivoGeneratorData,  self.arquivoGeneratorCostData e self.GeneratorAdditionalData ordenados:
+
+            # 1 - Varrer self.mpcGen['TOTAL'] pra pegar as chaves de numero de cadastro de usina e cada valor de barra.
+            # A primeira coluna do mpc.gen no arquivo de saida eh a barra, e as barras precisam ser escritas em ordem crescente.
+            # Teriamos dificuldade pra fazer isso porque a estrutura que guarda as informacoes do mpc.gen eh a seguinte:
+                # self.mpcGen['TOTAL'] = {
+                    # '1' : {'barra': '1', 'gen_type': 'T', ...}
+                    # '2' : {'barra': '1', 'gen_type': 'T', ...}
+                    # '3' : {'barra': '150', 'gen_type': 'T', ...}
+                    # '4' : {'barra': '170', 'gen_type': 'T', ...},
+                    # ....
+                # }
+
+            # O numero de cadastro ndusi nao repete, mas as barras podem repetir.
+            # A solucao foi a seguinte:
+            # guardar em uma lista arrayBarras o valor da barra em <int>
+            # guardar em uma lista arrayDusi o valor do numero de cadastro da usina <str>
+            # os arrays possuem o mesmo tamanho e cada indice tem relecao com o outro, por exemplo:
+            # arrayDusi[0] possui o numero de cadastro dusi, '1'
+            # arrayBarra[0]  possui o numero da barra 1
+
+            arrayBarras  = []
+            arrayDusi   = []
             for numeroDusi in self.mpcGen['TOTAL']:
+
+                numeroBarra = self.mpcGen['TOTAL'][numeroDusi]['barra']
+                arrayBarras.append(int(numeroBarra))
+                arrayDusi.append(numeroDusi)
+
+            # 2 - Atraves do algoritmo de bubble_sort que ordena uma lista de inteiros, toda vez que ele alterar os indices do array de barra, altera igualmente o array de dusi.
+            # no fim do bubble_sort o array de barra estara ordenado em ordem crescente,
+            # no fim do bubble_sort o array de dusi nao estara ordenado numericamente, mas nem eh o objetivo ate porque ele pode ser um array de <str>, estara ordenado na ordem de interesse para ser iterado posteriormente.
+
+            # No fim me importo com a ordenacao dos dusis, posso ignorar o retorno do arrayBarra.
+            _ , arrayDusi = bubble_sort(arrayBarras, arrayDusi)
+
+            # 3 - Varrer arrayDusi que contem a ordem que devemos acessar self.mpcGen['TOTAL'] para conseguir as barras de forma ordenada.
+            for numeroDusi in arrayDusi:
 
                 # mpcgen
                 self.arquivoGeneratorData += (
@@ -938,6 +978,10 @@ class tratamentoGeralArquivos:
                     )
 
 
+
+
+            # print(self.arquivoGeneratorData)
+            # sys.exit(1)
             for chavebarra in self.mpcBusAdd:
                 # mpcbusadd
                 self.arquivoAdditionalData += (

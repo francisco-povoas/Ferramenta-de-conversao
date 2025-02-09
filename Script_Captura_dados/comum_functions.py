@@ -1,3 +1,4 @@
+import sys
 
 # Com base no minuto e hora informado seleciona o estagio para passar para o infoCasoBase
 # Soh aceita fracoes de meia hora para minuto, como por exemplo minuto: '00' ou '30'
@@ -70,3 +71,18 @@ def retornaDicionarioInvertido(dicionario):
     NovoDicionario = {}
     for key, value in dicionario.items(): NovoDicionario[value] = key
     return NovoDicionario
+
+# Recebe dois array do mesmo tamanho, ordena o arrB em ordem crescente e pivoteia arrD conforme ordena arrB.
+# Ex entradas: arrB = [8,2,2,6,4,5], arrD = ['1','2','3','4','5','6'] -> arrB precisa ser uma lista de <int>, arrD pode ser qualquer tipo.
+# ex saidas:   arrB = [2,2,4,5,6,8], arrD = ['2','3','5','6','4','1']
+def bubble_sort(arrB, arrD):
+    if len(arrB) != len(arrD): sys.exit('[bubble_sort] Erro, arrB e arrD devem ter mesmo tamanho.')
+
+    n = len(arrB)
+    for i in range(n - 1):
+        for j in range(n - 1 - i): # - i porque a cada termino de iteracao aqui, garanto que o maior numero foi para a ultima posicao do array
+            if arrB[j] > arrB[j+1]:
+
+                arrB[j], arrB[j+1] = arrB[j+1], arrB[j] # troca (atual) pelo (proximo) e (proximo) pelo (atual). array de inteiros que queremos ordenar
+                arrD[j], arrD[j+1] = arrD[j+1], arrD[j] # troca (atual) pelo (proximo) e (proximo) pelo (atual). array de inteiros ou str que deve seguir pivoteamento de arrB
+    return arrB, arrD
