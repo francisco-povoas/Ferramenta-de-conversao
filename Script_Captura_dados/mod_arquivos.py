@@ -59,6 +59,13 @@ class tratamentoGeralArquivos:
             self.arquivoCasoBase = self.informacoesEstagio.arquivoBase    # Ex's .: leve.pwf, media.pwf, pesada.pwf
             self.arquivoPatamar  = CAMINHO+BLOCO_REVISAO+'/'+self.informacoesEstagio.arquivoPatamar # Ex .: Diretorio/pat01.afp
             
+            ### Flags que indicam se estrutura foi montada. Controle de dependencia.
+            self.busMontada = False
+            self.branchMontada = False
+            self.genMontada = False
+            self.busaddMontada = False
+
+
             self.informacoesBlocosArquivoBase = coletaBlocosArquivoBase(self.arquivoCasoBase)
 
             self.informacoesBlocosArquivoPatamar = coletaBlocosArquivosPatamar(self.arquivoPatamar)
@@ -186,7 +193,9 @@ class tratamentoGeralArquivos:
                     'VMIN': VMIN,
                 }
 
+            self.busMontada = True
         def montandoEstruturaMpcBranch(self):
+            if not self.busMontada: sys.exit('[montandoEstruturaMpcBranch] mpc.bus nao foi construido, existe dependencia') # tratativa para dependencia de bus.
             self.mpcBranch = {}
 
             for linhaFromTo in self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase']:
@@ -207,6 +216,10 @@ class tratamentoGeralArquivos:
 
                 F_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Barra-De']
                 T_BUS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Barra-Para']
+
+                # se a barra 'from' ou 'to' nao estiverem no mpc.bus, nao faz sentido eu coloca-los na estrutura de branch.
+                if F_BUS not in self.mpcBus or T_BUS not in self.mpcBus: continue
+
                 BR_R = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Resistencia']
                 BR_X = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Reatancia']
                 BR_B = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dlinInfoBase'][linhaFromTo]['Susceptancia']
@@ -263,6 +276,7 @@ class tratamentoGeralArquivos:
                     'ANGMAX': ANGMAX,
                 }
 
+            self.branchMontada = True
         def montandoEstruturaMpcGen(self):
             self.mpcGen = {}
             self.mpcGen['H'] = {}
@@ -670,6 +684,7 @@ class tratamentoGeralArquivos:
                         #     },                               
                         # }
 
+            self.genMontada = True
         # MpcGen poderia ser aproveitado para montar MpcBusAdd uma vez que ele realiza os mesmos lacos por dbar.
         # Aproveitar MpcGen seria uma esforco computacional menor, como o algoritmo nao precisa ficar atendendo solicitacoes em tempo real nao vejo motivos para nao organizar outro bloco de construcao da estrutura busadd.
         def montandoEstruturaMpcBusAdd(self):
@@ -755,6 +770,7 @@ class tratamentoGeralArquivos:
                 'GEN_NAME': NOME_USINA_CORRETO,
                 }
 
+            self.busaddMontada = True
         def montaArquivoMatPower(self):
             doisTabEspace = '   '
 
