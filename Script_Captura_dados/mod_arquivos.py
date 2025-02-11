@@ -7,6 +7,8 @@ from comum_functions_cmo import *
 from defines import *
 import os
 from copy import deepcopy
+import networkx as nx
+import matplotlib.pyplot as plt
 
 class coletaInfoEstagio:
     def __init__(self, estagio):
@@ -118,39 +120,47 @@ class tratamentoGeralArquivos:
                 elif BUS_TYPE == '2':
                     BUS_TYPE = '3'
 
+
+
+                # @@@@ Nova proposta:
+
+                # 1 - Pegar PD e QD do caso base, assim como a Area.
+                # 2 - Se encontrado fator de correcao aplicar em PD e QD
+                # 3 - Se a barra for encontrada nas informacoes de Eolica, subtraio o valor encontrado de geracao operada do PD.
                 BUS_AREA = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Area']
                 QD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Reativa']
-                
-                if BUS_I in self.informacoesArquivosUsinas.infoUsinaEolica:
-                    try:
-                        PD = float(self.informacoesArquivosUsinas.infoUsinaEolica[BUS_I]['Geracao-Operada'])
-                        if float(PD) > 0:
-                            PD = float(PD) * -1
-                        # se ja for menor nao preciso aplicar multiplicacao pra tornar a carga negativa ...
-                    except Exception as error:
-                        print('problema passando pd para passar para carga negativa, investigue o problema. Barra: '+ BUS_I)
-                        print(error)
-                        PD = 0
-                else:
-                    PD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Ativa']
-                    try:
-                        PD = float(PD)
-                    except:
-                        PD = 0
-                    
+                PD = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Carga-Ativa']
+
                 try:
                     QD = float(QD)
                 except:
                     QD = 0
-                
+
+                try:
+                    PD = float(PD)
+                except:
+                    PD = 0
 
                 if BUS_AREA in self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase']:
                     FATOR_CORRECAO_CARGA = self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase'][BUS_AREA]['Fator-Correcao']
-                    
-                    # Se PD eh proveniente de Eolica nao aplico fator de correcao.
-                    if FATOR_CORRECAO_CARGA and BUS_I not in self.informacoesArquivosUsinas.infoUsinaEolica:
-                        if PD: PD = float(PD) * (float(FATOR_CORRECAO_CARGA) / 100)
-                        if QD: QD = float(QD) * (float(FATOR_CORRECAO_CARGA) / 100)
+
+                    if PD: PD = float(PD) * (float(FATOR_CORRECAO_CARGA) / 100)
+                    if QD: QD = float(QD) * (float(FATOR_CORRECAO_CARGA) / 100)
+
+
+                if BUS_I in self.informacoesArquivosUsinas.infoUsinaEolica:
+                    try:
+                        geracaoOperadaEolica = float(self.informacoesArquivosUsinas.infoUsinaEolica[BUS_I]['Geracao-Operada'])
+                        if float(geracaoOperadaEolica) > 0:
+                            geracaoOperadaEolica = float(geracaoOperadaEolica) * -1
+                        # se ja for menor nao preciso aplicar multiplicacao pra tornar a carga negativa ...
+                    except Exception as error:
+                        print('problema passando geracaoOperadaEolica para passar para carga negativa, investigue o problema. Barra: '+ BUS_I)
+                        print(error)
+                        geracaoOperadaEolica = 0
+
+                    # Atualizo o valor de PD, subtraio geracao operada do valor de PD do caso base.
+                    PD += geracaoOperadaEolica
 
                 GS = '0' # Sem correspondente no pwf
                 BS = self.informacoesBlocosArquivoBase.respCompletaBlocosInfoBase['dbarInfoBase'][chavebarra]['Capacitor-Reator']
