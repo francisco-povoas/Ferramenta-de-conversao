@@ -1,5 +1,5 @@
 import sys
-from comum_functions import defineEstagio, bubble_sort
+from comum_functions import defineEstagio, bubble_sort, retornaStringArrumadaParaEscreverComTamanhoCorreto, corrigeNumero
 from comum_functions_base import *
 from comum_functions_patamar import *
 from comum_functions_usina import *
@@ -7,8 +7,6 @@ from comum_functions_cmo import *
 from defines import *
 import os
 from copy import deepcopy
-import networkx as nx
-import matplotlib.pyplot as plt
 
 class coletaInfoEstagio:
     def __init__(self, estagio):
@@ -934,30 +932,36 @@ class tratamentoGeralArquivos:
             # arrayDusi[0] possui o numero de cadastro dusi, '1'
             # arrayBarra[0]  possui o numero da barra 1
 
-            arrayBarras  = []
-            arrayDusi   = []
-            for numeroDusi in self.mpcGen['TOTAL']:
 
-                numeroBarra = self.mpcGen['TOTAL'][numeroDusi]['barra']
-                arrayBarras.append(int(numeroBarra))
-                arrayDusi.append(numeroDusi)
+            self._organizaInformacoesGen()
 
             # 2 - Atraves do algoritmo de bubble_sort que ordena uma lista de inteiros, toda vez que ele alterar os indices do array de barra, altera igualmente o array de dusi.
             # no fim do bubble_sort o array de barra estara ordenado em ordem crescente,
             # no fim do bubble_sort o array de dusi nao estara ordenado numericamente, mas nem eh o objetivo ate porque ele pode ser um array de <str>, estara ordenado na ordem de interesse para ser iterado posteriormente.
 
             # No fim me importo com a ordenacao dos dusis, posso ignorar o retorno do arrayBarra.
-            _ , arrayDusi = bubble_sort(arrayBarras, arrayDusi)
+            _ , arrayDusi = bubble_sort(self.arrayBarras , self.arrayDusi)
 
             # 3 - Varrer arrayDusi que contem a ordem que devemos acessar self.mpcGen['TOTAL'] para conseguir as barras de forma ordenada.
             for numeroDusi in arrayDusi:
 
+                barra = self.mpcGen['TOTAL'][numeroDusi]['barra']
+                pg    = self.mpcGen['TOTAL'][numeroDusi]['pg']
+                qg    = self.mpcGen['TOTAL'][numeroDusi]['qg']
+
+                # se pg == 0 qg recebe 0.0
+                # se pg diferente de 0, qg recebe o valor de qg que é pego no caso base dividido pelo numero de pg's diferente de 0 naquela barra.
+                try:
+                    qg = '0.0' if float(pg) == 0 else  round(float(qg) / self.relacaoBarraGeradores[barra], 2)
+                except:
+                    qg = '0.0'
+
                 # mpcgen
                 self.arquivoGeneratorData += (
                     doisTabEspace +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['barra']),10)                     +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['pg'])),10)         +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['qg'])),10)         +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(barra),10)                     +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(pg)),10)                                             +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(qg)),10)                                             +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['qmax'])),10)       +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcGen['TOTAL'][numeroDusi]['qmin'])),10)       +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcGen['TOTAL'][numeroDusi]['vg']),10)                        +
@@ -1006,8 +1010,6 @@ class tratamentoGeralArquivos:
 
 
 
-            # print(self.arquivoGeneratorData)
-            # sys.exit(1)
             for chavebarra in self.mpcBusAdd:
                 # mpcbusadd
                 self.arquivoAdditionalData += (
@@ -1090,33 +1092,52 @@ class tratamentoGeralArquivos:
                 arquivoMatPower.write(self.GeneratorAdditionalData)
                 arquivoMatPower.write(self.arquivoAdditionalData)
 
-# Funcao responsavel por retornar uma string com n caracteres preenchidos.
-# O Objetivo dela consiste em receber um valor, por exemplo 3.61 e concatenar espacos de modo que o resultado seja uma string que totalize a quantidade desejada (tamanhoPreenchimento) 
-# O principal objetivo dela eh formatar os espacamentos entre as colunas dos mpc do matpower.
-def retornaStringArrumadaParaEscreverComTamanhoCorreto(stringValor, tamanhoPreenchimento):
-    # Identifica o tamanho da string recebida pela funcao.
-    stringValueLen = len(stringValor)
-    # Calcula quantos espacos precisarah inserir para preencher o numero de caracteres requeridos por (tamanhoPreenchimento).
-    spaceToFill = tamanhoPreenchimento - stringValueLen
+        # organizaInformacoesGen eh responsavel por 3 coisas:
+        # 1 - construir uma lista com todas as barras no formato int
+        # 2 - construir uma lista com todos os numeros de cadastros <int> <str> nao importa.
+        # indice a indice da lista de barra e dusi estao relacionados.
+        # 3 - montar um dicionario com chave barra e valor um contador, que indica quantos pg geraram naquela barra, para
+        # posterior uso na hora de montar os valores de qg. qg do caso base sera dividido entre os qg's que o pg gerou.
 
-    # Inicializa variavel que irah retornar apos preencher com espacamento a direita, ate atingir tamanhoPreenchimento de caracteres.
-    stringValorPreenchida = stringValor
-    for i in range (0, spaceToFill):
-        # concatena espacos a direita da string recebida na funcao
-        stringValorPreenchida += ' '
 
-    return stringValorPreenchida
 
-# Funcao responsavel por corrigir numeracao
-def corrigeNumero(stringNumero):
-    if stringNumero.startswith('.'):
-        # stringNumero = '.1' -> '0.1' 
-        stringNumero = '0' + stringNumero
-    elif stringNumero.endswith('.'):
-        # stringNumero = '1.' -> '1'
-        stringNumero = stringNumero[ : len(stringNumero)-1] # remove ultimo caracter
-    elif stringNumero.startswith('-.'):
-        # stringNumero = '-.1' -> '-0.1'
-        stringNumero = '-0' + stringNumero[1:] # substitui '-' por '-0'
+        def _organizaInformacoesGen(self):
+            arrayBarras  = []
+            arrayDusi   = []
+            relacaoBarraGeradores = {}
+
+            # arrayBarras, arrayDusi, relacaoBarraGeradores = organizaInformacoesGen()
+            for numeroDusi in self.mpcGen['TOTAL']:
+
+                numeroBarra = self.mpcGen['TOTAL'][numeroDusi]['barra']
+
+                if numeroBarra not in relacaoBarraGeradores:
+                    # inicializa chave de barra e contador como 0
+                    # posteriormente, cada barra encontrada onde pg for diferente de 0 eu adiciono um contador
+                    # depois irei utilizar o numero de geradores para dividir QG
+                    # se a barra pg for 0, o qg eh zerado.
+                    relacaoBarraGeradores[numeroBarra] = 0
+
+                # Contabilizar numero de barras que pg eh diferente de 0 para posterior divisao de QG.
+                # QG sera divido entre as barras que geraram.
+
+                try:
+                    pg = self.mpcGen['TOTAL'][numeroDusi]['pg']
+                    # Se pg for string e nao iniciar por '0' contabilizo
+                    if type(pg) == str and not pg.startswith('0'):
+                        relacaoBarraGeradores[numeroBarra] += 1
+                    # Se pg for int ou float e e for maior que 0 contabilizo
+                    elif type(pg) == int or type(pg) == float and pg > 0:
+                        relacaoBarraGeradores[numeroBarra] += 1
+
+                except Exception as error:
+                    print(error)
+                    # se quebrar eh porque nao conseguiu fazer o cast, so ignoro nao contabilizando
+                    pass
     
-    return stringNumero
+                arrayBarras.append(int(numeroBarra))
+                arrayDusi.append(numeroDusi)
+
+            self.arrayBarras = arrayBarras
+            self.arrayDusi  = arrayDusi
+            self.relacaoBarraGeradores = relacaoBarraGeradores
