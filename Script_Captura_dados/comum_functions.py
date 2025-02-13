@@ -86,3 +86,35 @@ def bubble_sort(arrB, arrD):
                 arrB[j], arrB[j+1] = arrB[j+1], arrB[j] # troca (atual) pelo (proximo) e (proximo) pelo (atual). array de inteiros que queremos ordenar
                 arrD[j], arrD[j+1] = arrD[j+1], arrD[j] # troca (atual) pelo (proximo) e (proximo) pelo (atual). array de inteiros ou str que deve seguir pivoteamento de arrB
     return arrB, arrD
+
+
+# Funcao responsavel por retornar uma string com n caracteres preenchidos.
+# O Objetivo dela consiste em receber um valor, por exemplo 3.61 e concatenar espacos de modo que o resultado seja uma string que totalize a quantidade desejada (tamanhoPreenchimento) 
+# O principal objetivo dela eh formatar os espacamentos entre as colunas dos mpc do matpower.
+def retornaStringArrumadaParaEscreverComTamanhoCorreto(stringValor, tamanhoPreenchimento):
+    # Identifica o tamanho da string recebida pela funcao.
+    stringValueLen = len(stringValor)
+    # Calcula quantos espacos precisarah inserir para preencher o numero de caracteres requeridos por (tamanhoPreenchimento).
+    spaceToFill = tamanhoPreenchimento - stringValueLen
+
+    # Inicializa variavel que irah retornar apos preencher com espacamento a direita, ate atingir tamanhoPreenchimento de caracteres.
+    stringValorPreenchida = stringValor
+    for i in range (0, spaceToFill):
+        # concatena espacos a direita da string recebida na funcao
+        stringValorPreenchida += ' '
+
+    return stringValorPreenchida
+
+# Funcao responsavel por corrigir numeracao
+def corrigeNumero(stringNumero):
+    if stringNumero.startswith('.'):
+        # stringNumero = '.1' -> '0.1'
+        stringNumero = '0' + stringNumero
+    elif stringNumero.endswith('.'):
+        # stringNumero = '1.' -> '1'
+        stringNumero = stringNumero[ : len(stringNumero)-1] # remove ultimo caracter
+    elif stringNumero.startswith('-.'):
+        # stringNumero = '-.1' -> '-0.1'
+        stringNumero = '-0' + stringNumero[1:] # substitui '-' por '-0'
+
+    return stringNumero
