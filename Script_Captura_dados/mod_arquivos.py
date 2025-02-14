@@ -735,6 +735,7 @@ class tratamentoGeralArquivos:
                 # verificar inicialmente se a barra ta no dusi, se tiver pego tipo e procuro nos resultados de T e H
                 # se ela nao estiver tento ver se esta nos resultados de Eolica.
 
+            ###### AVALIAR POSSIVEL REFATORACAO DO CODIGO ABAIXO.
 
                 # varrendo
                 # self.mpcGen['H']
@@ -761,7 +762,7 @@ class tratamentoGeralArquivos:
                     if GEN_BUS in self.informacoesArquivosUsinas.infoUsinaEolica:
                         GEN_TYPE = self.informacoesArquivosUsinas.infoUsinaEolica[GEN_BUS]['Tipo'] # fixado em EO
                         NOME_USINA_CORRETO = self.informacoesArquivosUsinas.infoUsinaEolica[GEN_BUS]['Nome']
-                        ncontreiGEN_BUS = True
+                        EncontreiGEN_BUS = True
 
 
 
@@ -828,14 +829,36 @@ class tratamentoGeralArquivos:
             '\n')
 
             self.arquivobusData += 'mpc.bus = [\n'
-            
+
+            self._organizaInformacoesGen()
+
             for BUS in self.mpcBus:
+
+                # AJUSTA BARRA TIPO PV PARA PQ CASO BARRA NAO TENHA GERADOR.
+                # TORNA PD E QD NEGATIVOS CASO NAO SEJAM
+                BUS_TYPE = self.mpcBus[BUS]['BUS_TYPE']
+                PD       = str(self.mpcBus[BUS]['PD'])
+                QD       = str(self.mpcBus[BUS]['QD'])
+                BUS_I    = int(self.mpcBus[BUS]['BUS_I'])
+
+                if BUS_TYPE == '2':
+
+                    # self.arrayBarras contem as barras do mpc.gen
+                    if BUS_I not in self.arrayBarras:
+                        BUS_TYPE = '1'
+
+                        if not PD.startswith('-') and not PD.startswith('0'):
+                            PD = '-' + PD
+
+                        if not QD.startswith('-') and not QD.startswith('0'):
+                            QD = '-' + QD
+
                 self.arquivobusData += (
                     doisTabEspace +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['BUS_I']),8)                   +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['BUS_TYPE']),8)                +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['PD'])),8)       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['QD'])),8)      +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(BUS_TYPE,8)                                         +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(PD),8)                                +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(QD),8)                                +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['GS'])),8)       +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['BS'])),8)       +
                     retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['AREA']),8)                    +
@@ -931,9 +954,6 @@ class tratamentoGeralArquivos:
             # os arrays possuem o mesmo tamanho e cada indice tem relecao com o outro, por exemplo:
             # arrayDusi[0] possui o numero de cadastro dusi, '1'
             # arrayBarra[0]  possui o numero da barra 1
-
-
-            self._organizaInformacoesGen()
 
             # 2 - Atraves do algoritmo de bubble_sort que ordena uma lista de inteiros, toda vez que ele alterar os indices do array de barra, altera igualmente o array de dusi.
             # no fim do bubble_sort o array de barra estara ordenado em ordem crescente,
@@ -1098,9 +1118,6 @@ class tratamentoGeralArquivos:
         # indice a indice da lista de barra e dusi estao relacionados.
         # 3 - montar um dicionario com chave barra e valor um contador, que indica quantos pg geraram naquela barra, para
         # posterior uso na hora de montar os valores de qg. qg do caso base sera dividido entre os qg's que o pg gerou.
-
-
-
         def _organizaInformacoesGen(self):
             arrayBarras  = []
             arrayDusi   = []
@@ -1138,6 +1155,6 @@ class tratamentoGeralArquivos:
                 arrayBarras.append(int(numeroBarra))
                 arrayDusi.append(numeroDusi)
 
-            self.arrayBarras = arrayBarras
+            self.arrayBarras = arrayBarras # contem as barras do mpc.gen
             self.arrayDusi  = arrayDusi
             self.relacaoBarraGeradores = relacaoBarraGeradores
