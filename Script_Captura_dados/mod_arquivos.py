@@ -254,19 +254,31 @@ class tratamentoGeralArquivos:
 
                 # Tentando converter para PU 
                 try:
-                    BR_R = str(round(float(BR_R)/100,5))
+                    BR_R = float(BR_R)/100
+                    if BR_R < 0.01:
+                        BR_R = '0.01'
+                    else:
+                        BR_R = str(round(BR_R,5))
                 except Exception as error:
-                    BR_R = '0'
+                    BR_R = '0.01'
                 
                 try:
-                    BR_X = str(round(float(BR_X)/100,5))
+                    BR_X = float(BR_X)/100
+                    if BR_X < 0.01:
+                        BR_X = '0.01'
+                    else:
+                        BR_X = str(round(BR_X,5))
                 except:
-                    BR_X = '0'
+                    BR_X = '0.01'
 
                 try:
-                    BR_B = str(round(float(BR_B)/100,5))
+                    BR_B = float(BR_B)/100
+                    if BR_B < 0.01:
+                        BR_B = '0.01'
+                    else:
+                        BR_B = str(round(BR_B,5))
                 except:
-                    BR_B = '0'
+                    BR_B = '0.01'
 
                 self.mpcBranch[linhaFromTo] = {
                     'F_BUS': F_BUS,
@@ -835,7 +847,6 @@ class tratamentoGeralArquivos:
             for BUS in self.mpcBus:
 
                 # AJUSTA BARRA TIPO PV PARA PQ CASO BARRA NAO TENHA GERADOR.
-                # TORNA PD E QD NEGATIVOS CASO NAO SEJAM
                 BUS_TYPE = self.mpcBus[BUS]['BUS_TYPE']
                 PD       = str(self.mpcBus[BUS]['PD'])
                 QD       = str(self.mpcBus[BUS]['QD'])
@@ -846,12 +857,12 @@ class tratamentoGeralArquivos:
                     # self.arrayBarras contem as barras do mpc.gen
                     if BUS_I not in self.arrayBarras:
                         BUS_TYPE = '1'
+                        self.mpcBus[BUS]['BUS_TYPE'] = '1'
+                        # pg = 0 para os casos bases.
+                        geracao_reativa = self.informacoesBlocosArquivoBase.dbarInfoBase[str(BUS_I)]["Geracao-Reativa"]
+                        # geracao_ativa = self.informacoesBlocosArquivoBase.dbarInfoBase[str(BUS_I)]["Geracao-Ativa"] so valor 0
 
-                        if not PD.startswith('-') and not PD.startswith('0'):
-                            PD = '-' + PD
-
-                        if not QD.startswith('-') and not QD.startswith('0'):
-                            QD = '-' + QD
+                        QD = str(float(QD) - float(geracao_reativa))
 
                 self.arquivobusData += (
                     doisTabEspace +
@@ -870,7 +881,6 @@ class tratamentoGeralArquivos:
                     corrigeNumero(str(self.mpcBus[BUS]['VMIN']))  +
                     ';\n'
                     )
-
             self.arquivobusData += '];\n'
 
             self.arquivoGeneratorData = ''
