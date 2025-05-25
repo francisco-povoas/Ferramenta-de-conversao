@@ -143,8 +143,7 @@ class tratamentoGeralArquivos:
                     FATOR_CORRECAO_CARGA = self.informacoesBlocosArquivoPatamar.respCompletaBlocosInfoBase['dancInfoBase'][BUS_AREA]['Fator-Correcao']
 
                     if PD: PD = float(PD) * (float(FATOR_CORRECAO_CARGA) / 100)
-                    if QD: QD = float(QD) * (float(FATOR_CORRECAO_CARGA) / 100)
-
+                    # if QD: QD = float(QD) * (float(FATOR_CORRECAO_CARGA) / 100) Por ora deixo comentado
 
                 if BUS_I in self.informacoesArquivosUsinas.infoUsinaEolica:
                     try:
@@ -825,18 +824,18 @@ class tratamentoGeralArquivos:
             self.arquivoCabecalho += '\n'
             self.arquivobusData = ''
             self.arquivobusData += '%% bus data\n'
-            self.arquivobusData += ('%	' + retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_i',8) +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('type',8)   +	
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pd',8)	   +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qd',8)     +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('Gs',8)	   +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('Bs',8)	   +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('area',8)   +	
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('Vm',8)     +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('Va',8)     +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('baseKV',8) +	
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('zone',8)   +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('Vmax',8)   + 
+            self.arquivobusData += ('%	' + retornaStringArrumadaParaEscreverComTamanhoCorreto('bus_i',12) +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('type',12)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pd',12)	    +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Qd',12)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Gs',12)	    +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Bs',12)	    +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('area',12)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Vm',12)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Va',12)     +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('baseKV',12) +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('zone',12)   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Vmax',12)   +
               'Vmin' +
             '\n')
 
@@ -848,8 +847,8 @@ class tratamentoGeralArquivos:
 
                 # AJUSTA BARRA TIPO PV PARA PQ CASO BARRA NAO TENHA GERADOR.
                 BUS_TYPE = self.mpcBus[BUS]['BUS_TYPE']
-                PD       = str(self.mpcBus[BUS]['PD'])
-                QD       = str(self.mpcBus[BUS]['QD'])
+                PD       = round(float(self.mpcBus[BUS]['PD']), 2)
+                QD       = self.mpcBus[BUS]['QD']
                 BUS_I    = int(self.mpcBus[BUS]['BUS_I'])
 
                 if BUS_TYPE == '2':
@@ -862,22 +861,22 @@ class tratamentoGeralArquivos:
                         geracao_reativa = self.informacoesBlocosArquivoBase.dbarInfoBase[str(BUS_I)]["Geracao-Reativa"]
                         # geracao_ativa = self.informacoesBlocosArquivoBase.dbarInfoBase[str(BUS_I)]["Geracao-Ativa"] so valor 0
 
-                        QD = str(float(QD) - float(geracao_reativa))
+                        QD = round(float(QD) - float(geracao_reativa), 2)
 
                 self.arquivobusData += (
                     doisTabEspace +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['BUS_I']),8)                   +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(BUS_TYPE,8)                                         +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(PD),8)                                +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(QD),8)                                +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['GS'])),8)       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['BS'])),8)       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['AREA']),8)                    +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['VM']),8)                      +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['VA'])),8)       +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['BASEKV'])),8)   +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['ZONE']),8)                    +
-                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['VMAX'])),8)     +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['BUS_I']),12)                   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(BUS_TYPE,12)                                         +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(PD)),12)                           +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(QD)),12)                           +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['GS'])),12)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['BS'])),12)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['AREA']),12)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['VM']),12)                      +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['VA'])),12)       +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['BASEKV'])),12)   +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(str(self.mpcBus[BUS]['ZONE']),12)                    +
+                    retornaStringArrumadaParaEscreverComTamanhoCorreto(corrigeNumero(str(self.mpcBus[BUS]['VMAX'])),12)     +
                     corrigeNumero(str(self.mpcBus[BUS]['VMIN']))  +
                     ';\n'
                     )
@@ -897,7 +896,7 @@ class tratamentoGeralArquivos:
             retornaStringArrumadaParaEscreverComTamanhoCorreto('Pmax',10)     +
             retornaStringArrumadaParaEscreverComTamanhoCorreto('Pmin',10)     +
             retornaStringArrumadaParaEscreverComTamanhoCorreto('Pc1',10)      +
-            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pc2',10)	   +
+            retornaStringArrumadaParaEscreverComTamanhoCorreto('Pc2',10)	  +
             retornaStringArrumadaParaEscreverComTamanhoCorreto('Qc1min',10)   +
             retornaStringArrumadaParaEscreverComTamanhoCorreto('Qc1max',10)   +
             retornaStringArrumadaParaEscreverComTamanhoCorreto('Qc2min',10)   +
